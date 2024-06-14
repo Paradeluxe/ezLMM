@@ -1,39 +1,25 @@
 import pandas as pd
-
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri, Formula
 from rpy2.robjects.packages import importr
-import os
+
+# 导入R的库
+lmerTest = importr('lmerTest')
+emmeans = importr('emmeans')
+carData = importr('carData')
+car = importr('car')
+stats = importr("stats")
+Matrix = importr("Matrix")
+
+
 
 if __name__ == "__main__":
-
-    # df = pd.read_csv("Data_Experiment.csv")
-    # df = df[["sub",                                       # sub
-    #          "exp_type", "priming", "ifanimal", "syl",    # condition
-    #          "acc", "rt"]]                                # data
-    # print(df[["sub", "rt"]])
-
-    import rpy2.robjects as ro
-    from rpy2.robjects import pandas2ri, Formula
-    from rpy2.robjects.packages import importr
-    import pandas as pd
-
-
-    # 导入R的库
-    lmerTest = importr('lmerTest')
-    emmeans = importr('emmeans')
-    carData = importr('carData')
-    car = importr('car')
-    stats = importr("stats")
-    Matrix = importr("Matrix")
-
 
 
     exptype = "exp2"
     dep_var = "rt"  # ifcorr rt
 
     # 读取CSV文件
-    # data_path = "Data_Experiment.csv"
     data = pd.read_csv(r"C:\Users\Lenovo-PC\Desktop\linguistic rhythm\Data_Experiment.csv", encoding="utf-8")
 
     # 在Python中进行数据子集选择
@@ -53,6 +39,10 @@ if __name__ == "__main__":
     # r_data = pandas2ri.py2ri(data)
     with (ro.default_converter + pandas2ri.converter).context():
         r_data = ro.conversion.get_conversion().py2rpy(data)
+
+    # Create Formula and do the For loop
+
+
     # 定义R的公式
     formula = Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)")
 
@@ -62,6 +52,7 @@ if __name__ == "__main__":
         # print(model1)
         anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
         print(anova_model1)
+        print(type(anova_model1))
         summary_model1 = Matrix.summary(model1)
         print(summary_model1)
         # ro.r('anova(model1, type=3, ddf="Kenward-Roger")')
