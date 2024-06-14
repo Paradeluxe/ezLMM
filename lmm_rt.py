@@ -2,6 +2,7 @@ import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri, Formula
 from rpy2.robjects.packages import importr
+import itertools
 
 # 导入R的库
 lmerTest = importr('lmerTest')
@@ -42,9 +43,19 @@ if __name__ == "__main__":
     fixed_factor = ["Tpriming", "Tsyl"]
     random_factor = ["sub", "word"]
 
+    fixed_combo = []
+
+    # 使用itertools.combinations生成所有非空组合
+    # 从1开始，因为0会生成空集
+    for i in range(len(fixed_factor), 0, -1):
+        for combo in itertools.combinations(fixed_factor, i):
+            fixed_combo.append(":".join(combo))
+
     fixed_model = " * ".join(fixed_factor)
-    random_model = " + ".join([f"(1+Tpriming*Tsyl|{rf})" for rf in random_factor])
-    formula = Formula(f"rt ~ {fixed_model} + {random_model}")
+    random_model = " + ".join([f"(1+|{rf})" for rf in random_factor])
+
+    formulas = [Formula(f"rt ~ {fixed_model} + {random_model}") for fc in fixed_combo]
+
 
 
     for formula in formulas:
