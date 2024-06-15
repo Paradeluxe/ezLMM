@@ -1,5 +1,3 @@
-import time
-
 import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri, Formula, numpy2ri
@@ -61,6 +59,7 @@ if __name__ == "__main__":
 
 
     while True:
+
         random_str = ""
         for key in random_model:
             if not random_model[key]:  # has no element
@@ -75,9 +74,9 @@ if __name__ == "__main__":
 
         # 使用lmer函数拟合模型
         model1 = lmerTest.lmer(formula, REML=True, data=r_data)
-        r_model1_summ = Matrix.summary(model1)
+        summary_model1_r = Matrix.summary(model1)
         with localconverter(ro.default_converter + pandas2ri.converter + numpy2ri.converter):
-            summary_model1 = ro.conversion.get_conversion().rpy2py(r_model1_summ)
+            summary_model1 = ro.conversion.get_conversion().rpy2py(summary_model1_r)
         try:
             isSingular = summary_model1["optinfo"]["conv"]['lme4']["messages"][0] == "boundary (singular) fit: see help('isSingular')"
         except KeyError:
@@ -127,11 +126,11 @@ if __name__ == "__main__":
             random_model[rf2ex].remove(ff2ex)
             # print(random_model)
             print("\n\n\n")
-        # time.sleep(1)
+        # time.sleep(5)
         # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
         # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
 
-    print(r_model1_summ)
+    print(summary_model1["call"])
     anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
     # print(anova_model1.colnames)
     # print(anova_model1.rownames)
@@ -142,6 +141,15 @@ if __name__ == "__main__":
 
     # print(anova_model1["Pr(>F)"])
     print(anova_model1)
+
+    model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
+    summary_model1_r = Matrix.summary(model1)
+    print(summary_model1_r)
+
+
+    print("-------------------------------------------------------")
+    print("SCRIPT End √ | Ignore if there is any \"R[write to console]\" down below, as it is an automatic callback")
+    print("-------------------------------------------------------")
     # print(summary_model1)
 
     # 进行emmeans分析
