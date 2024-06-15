@@ -1,3 +1,5 @@
+import time
+
 import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri, Formula, numpy2ri
@@ -55,36 +57,35 @@ if __name__ == "__main__":
         for combo in itertools.combinations(fixed_factor, i):
             fixed_combo.append(":".join(combo))
 
-    random_model = {key: fixed_combo for key in random_factor}
+    random_model = {key: fixed_combo[:] for key in random_factor}
 
 
     while True:
         random_str = ""
         for key in random_model:
-            random_str += "(1 + " + " + ".join(random_model[key]) + f" | {key}) + "
+            if not random_model[key]:  # has no element
+                random_str += "(1" + " + ".join(random_model[key]) + f" | {key}) + "
+            else:  # has element
+                random_str += "(1 + " + " + ".join(random_model[key]) + f" | {key}) + "
         random_str = random_str.rstrip(" + ")
 
-        formula = f"rt ~ {fixed_str} + {random_str}"
-        Formula = Formula(formula)
-        print(f"Running FORMULA: {formula}")
+        formula_str = f"rt ~ {fixed_str} + {random_str}"
+        formula = Formula(formula_str)
+        print(f"Running FORMULA: {formula_str}")
 
         # 使用lmer函数拟合模型
-        model1 = lmerTest.lmer(Formula, REML=True, data=r_data)
-
+        model1 = lmerTest.lmer(formula, REML=True, data=r_data)
+        r_model1_summ = Matrix.summary(model1)
         with localconverter(ro.default_converter + pandas2ri.converter + numpy2ri.converter):
-            summary_model1 = ro.conversion.get_conversion().rpy2py(Matrix.summary(model1))
+            summary_model1 = ro.conversion.get_conversion().rpy2py(r_model1_summ)
+        try:
+            isSingular = summary_model1["optinfo"]["conv"]['lme4']["messages"][0] == "boundary (singular) fit: see help('isSingular')"
+        except KeyError:
+            isSingular = False
 
-        isSingular = summary_model1["optinfo"]["conv"]['lme4']["messages"][0] == "boundary (singular) fit: see help('isSingular')"
-
-        # print(type(nlme.VarCorr(model1)))
-        # with (ro.default_converter + pandas2ri.converter).context():
-        #     varcorr_model1 = ro.conversion.get_conversion().rpy2py(nlme.VarCorr(model1))
-
-
-        # Check if corr < 0.90 and exclude the least std
+        # Transform random table to DataFrame format
         random_table = []
 
-        # 将字符串按行分割
         lines = str(nlme.VarCorr(model1)).strip().split('\n')
         for line in lines[1:-1]:  # Exclude the 1st and last line
             # Check if the 2nd element is number
@@ -96,12 +97,17 @@ if __name__ == "__main__":
             elements = [float(e) if e.split(".")[0].strip("-").isnumeric() else e for e in elements]
 
             random_table.append(elements)
-            print(elements)
+            # print(elements)
 
         df = pd.DataFrame(random_table)
 
+        df = df[df[1] != '(Intercept)']  # ignore all the "(intercept)"
+
+        # print(df)
         # Check if there is any corr item that is >= 0.90
-        all_corrs = np.array(df.iloc[:, 3:].dropna()).flatten().tolist()
+        all_corrs = np.array(df.iloc[:, 3:].dropna(how="all")).flatten().tolist()
+        all_corrs = [corr for corr in all_corrs if isinstance(corr, (int, float))]
+        # print(all_corrs)
         isTooLargeCorr = any(corr >= .9 for corr in all_corrs)
 
         # if isTooLargeCorr:
@@ -119,12 +125,13 @@ if __name__ == "__main__":
 
             # Processing EXCLUSION
             random_model[rf2ex].remove(ff2ex)
-            print(random_model)
-
+            # print(random_model)
+            print("\n\n\n")
+        # time.sleep(1)
         # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
         # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
 
-
+    print(r_model1_summ)
     anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
     # print(anova_model1.colnames)
     # print(anova_model1.rownames)
