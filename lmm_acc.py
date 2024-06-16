@@ -7,7 +7,6 @@ from rpy2.robjects.conversion import localconverter
 import numpy as np
 
 # 导入R的库
-lmerTest = importr('lmerTest')
 emmeans = importr('emmeans')
 carData = importr('carData')
 car = importr('car')
@@ -157,7 +156,7 @@ if __name__ == "__main__":
     # print(anova_model1["Pr(>F)"])
     print(anova_model1)
 
-    model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
+    model1 = lme4.glmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
     summary_model1_r = Matrix.summary(model1)
     print(summary_model1_r)
 
