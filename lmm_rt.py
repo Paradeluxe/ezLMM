@@ -23,7 +23,8 @@ if __name__ == "__main__":
     data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 
     # 在Python中进行数据子集选择
-    data = data[(data['exp_type'] == "exp2") & (data['ifanimal'] == True)]
+    # data = data[(data['exp_type'] == "exp2") & (data['ifanimal'] == True)]
+    # data = data[(data['ifanimal'] == True)]
 
     # if dep_var == "rt":
     data = data[data['ifcorr'] == 1]
@@ -33,7 +34,7 @@ if __name__ == "__main__":
     # 定义因子变量
     data['Tpriming'] = -0.5 * (data['priming'] == "priming") + 0.5 * (data['priming'] != "priming")
     data['Tsyl'] = -0.5 * (data['syl'] == 2) + 0.5 * (data['syl'] != 2)
-    # data['Texp_type'] = -0.5 * (data['exp_type'] == "exp1") + 0.5 * (data['exp_type'] != "exp1")
+    data['Texp_type'] = -0.5 * (data['exp_type'] == "exp1") + 0.5 * (data['exp_type'] != "exp1")
 
     # 将pandas DataFrame转换为R的data.frame
     with (ro.default_converter + pandas2ri.converter).context():
@@ -43,7 +44,7 @@ if __name__ == "__main__":
 
     # Construct
     # 定义R的公式
-    fixed_factor = ["Tpriming", "Tsyl"]
+    fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
     random_factor = ["sub", "word"]
     fixed_str = " * ".join(fixed_factor)
 
@@ -63,7 +64,7 @@ if __name__ == "__main__":
         random_str = ""
         for key in random_model:
             if not random_model[key]:  # has no element
-                random_str += "(1" + " + ".join(random_model[key]) + f" | {key}) + "
+                random_str += "(1" + f" | {key}) + "
             else:  # has element
                 random_str += "(1 + " + " + ".join(random_model[key]) + f" | {key}) + "
         random_str = random_str.rstrip(" + ")
@@ -86,14 +87,19 @@ if __name__ == "__main__":
         random_table = []
 
         lines = str(nlme.VarCorr(model1)).strip().split('\n')
-        for line in lines[1:-1]:  # Exclude the 1st and last line
+        print(lines)
+        for line in lines[1:]:  # Exclude the 1st and last line
             # Check if the 2nd element is number
-            elements = line.split()
-            if elements[1].split(".")[0].isnumeric():
+            elements = line.strip().split()
+            # print(elements)
+            if elements[1].strip("-").split(".")[0].isnumeric():
                 elements = [Groups] + elements
             else:
                 Groups = elements[0]
             elements = [float(e) if e.split(".")[0].strip("-").isnumeric() else e for e in elements]
+            # print(elements[0], elements[1])
+            if elements[1] == "Residual":
+                break
 
             random_table.append(elements)
             # print(elements)
@@ -148,7 +154,7 @@ if __name__ == "__main__":
 
 
     print("-------------------------------------------------------")
-    print("SCRIPT End √ | Ignore if there is any \"R[write to console]\" down below, as it is an automatic callback")
+    print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")
     print("-------------------------------------------------------")
     # print(summary_model1)
 
