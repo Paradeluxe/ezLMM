@@ -56,7 +56,13 @@ if __name__ == "__main__":
         for combo in itertools.combinations(fixed_factor, i):
             fixed_combo.append(":".join(combo))
 
-    random_model = {key: fixed_combo[:] for key in random_factor}
+    prev_formula = "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
+    if prev_formula:
+        random_model = {kw[1]: kw[0].split(" + ") for kw in [full_item.split(")")[0].split(" | ") for full_item in prev_formula.split("(1 + ")[1:]]}
+    else:
+        random_model = {key: fixed_combo[:] for key in random_factor}
+
+
 
 
     while True:
@@ -79,15 +85,15 @@ if __name__ == "__main__":
         with localconverter(ro.default_converter + pandas2ri.converter + numpy2ri.converter):
             summary_model1 = ro.conversion.get_conversion().rpy2py(summary_model1_r)
         try:
-            isSingular = summary_model1["optinfo"]["conv"]['lme4']["messages"][0] == "boundary (singular) fit: see help('isSingular')"
+            isWarning = list(summary_model1["optinfo"]["conv"]['lme4']["messages"])
         except KeyError:
-            isSingular = False
+            isWarning = False
 
         # Transform random table to DataFrame format
         random_table = []
 
         lines = str(nlme.VarCorr(model1)).strip().split('\n')
-        print(lines)
+        # print(lines)
         for line in lines[1:]:  # Exclude the 1st
             # Check if the 2nd element is number
             elements = line.strip().split()
@@ -118,7 +124,7 @@ if __name__ == "__main__":
         # if isTooLargeCorr:
         #     print("Find corr >= 0.90")
 
-        isGoodModel = not isSingular and not isTooLargeCorr
+        isGoodModel = not isWarning and not isTooLargeCorr
 
         if isGoodModel:
             break
@@ -131,7 +137,7 @@ if __name__ == "__main__":
             # Processing EXCLUSION
             random_model[rf2ex].remove(ff2ex)
             # print(random_model)
-            print("\n\n\n")
+            print("---\n---")
         # time.sleep(5)
         # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
         # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
@@ -148,9 +154,9 @@ if __name__ == "__main__":
     # print(anova_model1["Pr(>F)"])
     print(anova_model1)
 
-    model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
-    summary_model1_r = Matrix.summary(model1)
-    print(summary_model1_r)
+    # model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
+    # summary_model1_r = Matrix.summary(model1)
+    # print(summary_model1_r)
 
 
     print("-------------------------------------------------------")
