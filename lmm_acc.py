@@ -41,6 +41,7 @@ if __name__ == "__main__":
 
     # Construct
     # 定义R的公式
+    dep_var = "ifcorr"
     fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
     random_factor = ["sub", "word"]
     fixed_str = " * ".join(fixed_factor)
@@ -66,7 +67,7 @@ if __name__ == "__main__":
                 random_str += "(1 + " + " + ".join(random_model[key]) + f" | {key}) + "
         random_str = random_str.rstrip(" + ")
 
-        formula_str = f"acc ~ {fixed_str} + {random_str}"
+        formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
         formula = Formula(formula_str)
         print(f"Running FORMULA: {formula_str}")
 
@@ -76,9 +77,9 @@ if __name__ == "__main__":
         with localconverter(ro.default_converter + pandas2ri.converter + numpy2ri.converter):
             summary_model1 = ro.conversion.get_conversion().rpy2py(summary_model1_r)
         try:
-            isSingular = summary_model1["optinfo"]["conv"]['lme4']["messages"][0] == "boundary (singular) fit: see help('isSingular')"
+            isWarning = summary_model1["optinfo"]["conv"]['lme4']["messages"]
         except KeyError:
-            isSingular = False
+            isWarning = False
 
         # # model1 <<- glmer("ifcorr ~ Tpriming*Tsyl + (1 + Tsyl + Texp_type + Tpriming:Tsyl + Tpriming:Texp_type + Tsyl:Texp_type + Tpriming:Tsyl:Texp_type|sub) + (1+Tpriming + Tsyl + Texp_type + Tpriming:Tsyl + Tpriming:Texp_type + Tsyl:Texp_type + Tpriming:Tsyl:Texp_type |word) +(1|familiarity)", family=binomial, data=data)
         # model1 << - glmer("ifcorr ~ Tpriming*Tsyl + (1  |sub) + (1   |word) +(1    |familiarity)", family=binomial,
@@ -120,13 +121,9 @@ if __name__ == "__main__":
         # Check if there is any corr item that is >= 0.90
         all_corrs = np.array(df.iloc[:, 3:].dropna(how="all")).flatten().tolist()
         all_corrs = [corr for corr in all_corrs if isinstance(corr, (int, float))]
-        # print(all_corrs)
         isTooLargeCorr = any(corr >= .9 for corr in all_corrs)
 
-        # if isTooLargeCorr:
-        #     print("Find corr >= 0.90")
-
-        isGoodModel = not isSingular and not isTooLargeCorr
+        isGoodModel = not isWarning and not isTooLargeCorr
 
         if isGoodModel:
             break
@@ -139,27 +136,17 @@ if __name__ == "__main__":
             # Processing EXCLUSION
             random_model[rf2ex].remove(ff2ex)
             # print(random_model)
-            print("\n\n\n")
-        # time.sleep(5)
+            print("---\n---")
+
         # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
         # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
 
-    print(summary_model1["call"])
-    anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
-    # print(anova_model1.colnames)
-    # print(anova_model1.rownames)
-
-    # anova_model1 change format
-    with (ro.default_converter + pandas2ri.converter).context():
-        anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
-
-    # print(anova_model1["Pr(>F)"])
-    print(anova_model1)
-
-    model1 = lme4.glmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
-    summary_model1_r = Matrix.summary(model1)
     print(summary_model1_r)
 
+    anova_model1 = car.Anova(model1, type=3, test="Chisq")
+    print(anova_model1)
+    with (ro.default_converter + pandas2ri.converter).context():
+        anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
 
     print("-------------------------------------------------------")
     print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")

@@ -44,6 +44,7 @@ if __name__ == "__main__":
 
     # Construct
     # 定义R的公式
+    dep_var = "rt"
     fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
     random_factor = ["sub", "word"]
     fixed_str = " * ".join(fixed_factor)
@@ -56,7 +57,7 @@ if __name__ == "__main__":
         for combo in itertools.combinations(fixed_factor, i):
             fixed_combo.append(":".join(combo))
 
-    prev_formula = "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
+    prev_formula = ""# "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
     if prev_formula:
         random_model = {kw[1]: kw[0].split(" + ") for kw in [full_item.split(")")[0].split(" | ") for full_item in prev_formula.split("(1 + ")[1:]]}
     else:
@@ -75,7 +76,7 @@ if __name__ == "__main__":
                 random_str += "(1 + " + " + ".join(random_model[key]) + f" | {key}) + "
         random_str = random_str.rstrip(" + ")
 
-        formula_str = f"rt ~ {fixed_str} + {random_str}"
+        formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
         formula = Formula(formula_str)
         print(f"Running FORMULA: {formula_str}")
 
@@ -142,17 +143,16 @@ if __name__ == "__main__":
         # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
         # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
 
-    print(summary_model1["call"])
+    print(summary_model1_r)
     anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
-    # print(anova_model1.colnames)
-    # print(anova_model1.rownames)
 
     # anova_model1 change format
+    print(anova_model1)
+
     with (ro.default_converter + pandas2ri.converter).context():
         anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
 
     # print(anova_model1["Pr(>F)"])
-    print(anova_model1)
 
     # model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
     # summary_model1_r = Matrix.summary(model1)
