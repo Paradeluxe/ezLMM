@@ -142,7 +142,9 @@ if __name__ == "__main__":
         # time.sleep(5)
         # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
         # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
-
+        if not any(random_model.values()):
+            print("Every model failed")
+            break
     print(summary_model1_r)
     anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
 

@@ -81,17 +81,6 @@ if __name__ == "__main__":
         except KeyError:
             isWarning = False
 
-        # # model1 <<- glmer("ifcorr ~ Tpriming*Tsyl + (1 + Tsyl + Texp_type + Tpriming:Tsyl + Tpriming:Texp_type + Tsyl:Texp_type + Tpriming:Tsyl:Texp_type|sub) + (1+Tpriming + Tsyl + Texp_type + Tpriming:Tsyl + Tpriming:Texp_type + Tsyl:Texp_type + Tpriming:Tsyl:Texp_type |word) +(1|familiarity)", family=binomial, data=data)
-        # model1 << - glmer("ifcorr ~ Tpriming*Tsyl + (1  |sub) + (1   |word) +(1    |familiarity)", family=binomial,
-        #                   data=data)
-        #
-        # print(car::Anova(model1, type=3, test.statistic = "Chisq"))
-        #
-        # summary(model1)
-
-
-
-
         # Transform random table to DataFrame format
         random_table = []
 
@@ -138,8 +127,14 @@ if __name__ == "__main__":
             # print(random_model)
             print("---\n---")
 
+        if not any(random_model.values()):
+            print("Loop end, nothing found.")
+            break
+
+
         # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
         # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
+
 
     print(summary_model1_r)
 
