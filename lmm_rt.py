@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
         lines = str(nlme.VarCorr(model1)).strip().split('\n')
         print(lines)
-        for line in lines[1:]:  # Exclude the 1st and last line
+        for line in lines[1:]:  # Exclude the 1st
             # Check if the 2nd element is number
             elements = line.strip().split()
             # print(elements)
@@ -126,7 +126,7 @@ if __name__ == "__main__":
             rf2ex = df.loc[df[2].idxmin(0)][0]
             ff2ex = df.loc[df[2].idxmin(0)][1]
 
-            print(f"Exclude Random Factor \"{rf2ex}\", and Fixed item \"{ff2ex}\"")
+            print(f"Exclude random model item: {ff2ex} | {rf2ex}")
 
             # Processing EXCLUSION
             random_model[rf2ex].remove(ff2ex)
