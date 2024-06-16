@@ -43,7 +43,7 @@ if __name__ == "__main__":
     # 定义R的公式
     dep_var = "ifcorr"
     fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
-    random_factor = ["sub", "word"]
+    random_factor = ["sub"]#, "word"]
     fixed_str = " * ".join(fixed_factor)
 
     fixed_combo = []
@@ -83,12 +83,16 @@ if __name__ == "__main__":
 
         # Transform random table to DataFrame format
         random_table = []
-
         lines = str(nlme.VarCorr(model1)).strip().split('\n')
-        # print(lines)
+        corrs_supp = []
         for line in lines[1:]:  # Exclude the 1st
             # Check if the 2nd element is number
             elements = line.strip().split()
+            if not elements:
+                continue
+            if elements[0].split(".")[0].strip("-").isnumeric():
+                corrs_supp.extend([float(e) if e.split(".")[0].strip("-").isnumeric() else e for e in elements])
+                continue
             # print(elements)
             if elements[1].strip("-").split(".")[0].isnumeric():
                 elements = [Groups] + elements
@@ -98,7 +102,6 @@ if __name__ == "__main__":
             # print(elements[0], elements[1])
             if elements[1] == "Residual":
                 break
-
             random_table.append(elements)
             # print(elements)
 
@@ -110,6 +113,8 @@ if __name__ == "__main__":
         # Check if there is any corr item that is >= 0.90
         all_corrs = np.array(df.iloc[:, 3:].dropna(how="all")).flatten().tolist()
         all_corrs = [corr for corr in all_corrs if isinstance(corr, (int, float))]
+        all_corrs.extend(corrs_supp)
+
         isTooLargeCorr = any(corr >= .9 for corr in all_corrs)
 
         isGoodModel = not isWarning and not isTooLargeCorr
