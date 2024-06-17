@@ -73,8 +73,11 @@ fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
 random_factor = ["sub", "word"]
 fixed_str = " * ".join(fixed_factor)
 
+# ---------------------------------
+# ABOVE IS OK. DO NOT TOUCH BELOW.
+# ---------------------------------
+
 fixed_combo = []
-# 使用itertools.combinations生成所有非空组合
 for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
     for combo in itertools.combinations(fixed_factor, i):
         fixed_combo.append(":".join(combo))
@@ -85,16 +88,16 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # ---------------------------------
 
 prev_formula = ""  # "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
-if prev_formula:
-    random_model = {kw[1]: kw[0].split(" + ") for kw in [full_item.split(")")[0].split(" | ") for full_item in prev_formula.split("(1 + ")[1:]]}
-else:
-    random_model = {key: fixed_combo[:] for key in random_factor}
 
 
 # ---------------------------------
 # ----------< For USERS <----------
 # ---------------------------------
 
+if prev_formula:
+    random_model = {kw[1]: kw[0].split(" + ") for kw in [full_item.split(")")[0].split(" | ") for full_item in prev_formula.split("(1 + ")[1:]]}
+else:
+    random_model = {key: fixed_combo[:] for key in random_factor}
 
 # Change pandas DataFrame into R language's data.frame
 with (ro.default_converter + pandas2ri.converter).context():
