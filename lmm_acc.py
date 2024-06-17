@@ -77,7 +77,7 @@ if __name__ == "__main__":
         with localconverter(ro.default_converter + pandas2ri.converter + numpy2ri.converter):
             summary_model1 = ro.conversion.get_conversion().rpy2py(summary_model1_r)
         try:
-            isWarning = summary_model1["optinfo"]["conv"]['lme4']["messages"].any()
+            isWarning = list(summary_model1["optinfo"]["conv"]['lme4']["messages"])
         except KeyError:
             isWarning = False
 
