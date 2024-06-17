@@ -43,7 +43,7 @@ if __name__ == "__main__":
     # 定义R的公式
     dep_var = "ifcorr"
     fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
-    random_factor = ["sub"]#, "word"]
+    random_factor = ["sub", "word"]
     fixed_str = " * ".join(fixed_factor)
 
     fixed_combo = []
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         with localconverter(ro.default_converter + pandas2ri.converter + numpy2ri.converter):
             summary_model1 = ro.conversion.get_conversion().rpy2py(summary_model1_r)
         try:
-            isWarning = summary_model1["optinfo"]["conv"]['lme4']["messages"]
+            isWarning = summary_model1["optinfo"]["conv"]['lme4']["messages"].any()
         except KeyError:
             isWarning = False
 
