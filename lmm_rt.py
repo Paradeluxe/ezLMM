@@ -181,8 +181,7 @@ if __name__ == "__main__":
     # model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
     # summary_model1_r = Matrix.summary(model1)
     # print(summary_model1_r)
-
-
+    print(f"Last formula is {formula_str}\n\n")
     print("-------------------------------------------------------")
     print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")
     print("-------------------------------------------------------")

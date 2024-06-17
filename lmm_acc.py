@@ -146,7 +146,7 @@ if __name__ == "__main__":
     print(anova_model1)
     with (ro.default_converter + pandas2ri.converter).context():
         anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
-
+    print(f"Last formula is {formula_str}\n\n")
     print("-------------------------------------------------------")
     print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")
     print("-------------------------------------------------------")
