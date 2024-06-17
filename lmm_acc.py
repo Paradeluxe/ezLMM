@@ -8,9 +8,7 @@ import numpy as np
 
 # 导入R的库
 emmeans = importr('emmeans')
-carData = importr('carData')
 car = importr('car')
-stats = importr("stats")
 Matrix = importr("Matrix")
 lme4 = importr("lme4")
 nlme = importr("nlme")
