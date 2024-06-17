@@ -1,12 +1,9 @@
 import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri, Formula, numpy2ri
-from rpy2.robjects.packages import importr
-import itertools
 from rpy2.robjects.conversion import localconverter
-import numpy as np
+from rpy2.robjects.packages import importr
 
-# 导入R的库
 lmerTest = importr('lmerTest')
 emmeans = importr('emmeans')
 carData = importr('carData')
@@ -51,7 +48,6 @@ if __name__ == "__main__":
     summary_model1_r = Matrix.summary(model1)
     with localconverter(ro.default_converter + pandas2ri.converter + numpy2ri.converter):
         summary_model1 = ro.conversion.get_conversion().rpy2py(summary_model1_r)
-    exit()
     print(summary_model1_r)
     anova_model1 = car.Anova(model1, type=3, test="Chisq")
     # print(anova_model1.colnames)

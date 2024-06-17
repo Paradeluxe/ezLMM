@@ -1,12 +1,12 @@
+import itertools
+
+import numpy as np
 import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri, Formula, numpy2ri
-from rpy2.robjects.packages import importr
-import itertools
 from rpy2.robjects.conversion import localconverter
-import numpy as np
+from rpy2.robjects.packages import importr
 
-# 导入R的库
 emmeans = importr('emmeans')
 car = importr('car')
 Matrix = importr("Matrix")
@@ -118,6 +118,7 @@ if __name__ == "__main__":
         isGoodModel = not isWarning and not isTooLargeCorr
 
         if isGoodModel:
+            print(f"Formula {formula_str} is a good model.")
             break
         else:
             rf2ex = df.loc[df[2].idxmin(0)][0]
