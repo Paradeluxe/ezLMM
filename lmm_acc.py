@@ -31,7 +31,7 @@ data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 # ---------------------------------
 
 # data = data[(data['exp_type'] == "exp2") & (data['ifanimal'] == True)]
-# data = data[(data['ifanimal'] == True)]
+data = data[(data['ifanimal'] == True)]
 
 
 # ---------------------------------
@@ -79,7 +79,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = ""  # "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
+prev_formula = "ifcorr ~ Tpriming * Tsyl * Texp_type + (1 + Tsyl:Texp_type + Tsyl + Texp_type | sub) + (1 + Tpriming:Tsyl:Texp_type + Tsyl:Texp_type + Tsyl | word)"  # "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
 
 
 # ---------------------------------
@@ -112,8 +112,9 @@ while True:
     summary_model1_r = Matrix.summary(model1)
     with localconverter(ro.default_converter + pandas2ri.converter + numpy2ri.converter):
         summary_model1 = ro.conversion.get_conversion().rpy2py(summary_model1_r)
+
     try:
-        isWarning = list(summary_model1["optinfo"]["conv"]['lme4']["messages"])
+        isWarning = eval(str(summary_model1["optinfo"]["conv"]['lme4']["messages"]).strip("o"))
     except KeyError:
         isWarning = False
 
@@ -170,7 +171,7 @@ while True:
         print("---\n---")
 
     if not any(random_model.values()):
-        print("Loop end, nothing found.")
+
         break
 
 
@@ -184,6 +185,10 @@ anova_model1 = car.Anova(model1, type=3, test="Chisq")
 print(anova_model1)
 with (ro.default_converter + pandas2ri.converter).context():
     anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
+if isGoodModel:
+    print(f"Found good model")
+else:
+    print(f"Found no good model")
 print(f"Last formula is {formula_str}\n\n")
 print("-------------------------------------------------------")
 print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")

@@ -35,7 +35,7 @@ data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 
 # determine subset based on "condition==value"
 # data = data[(data['exp_type'] == "exp2") & (data['ifanimal'] == True)]
-# data = data[(data['ifanimal'] == True)]
+data = data[(data['ifanimal'] == False)]
 
 data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
 
@@ -121,7 +121,7 @@ while True:
     with localconverter(ro.default_converter + pandas2ri.converter + numpy2ri.converter):
         summary_model1 = ro.conversion.get_conversion().rpy2py(summary_model1_r)
     try:
-        isWarning = list(summary_model1["optinfo"]["conv"]['lme4']["messages"])
+        isWarning = eval(str(summary_model1["optinfo"]["conv"]['lme4']["messages"]).strip("o"))
     except KeyError:
         isWarning = False
 
@@ -199,6 +199,10 @@ with (ro.default_converter + pandas2ri.converter).context():
 # model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
 # summary_model1_r = Matrix.summary(model1)
 # print(summary_model1_r)
+if isGoodModel:
+    print(f"Found good model")
+else:
+    print(f"Found no good model")
 print(f"Last formula is {formula_str}\n\n")
 print("-------------------------------------------------------")
 print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")
