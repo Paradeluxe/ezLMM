@@ -35,7 +35,7 @@ data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 
 # determine subset based on "condition==value"
 # data = data[(data['exp_type'] == "exp2") & (data['ifanimal'] == True)]
-data = data[(data['ifanimal'] == False)]
+# data = data[(data['ifanimal'] == False)]
 
 data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
 
@@ -62,14 +62,14 @@ data['rt'] = data['rt'] * 1000  # if rt is in ms, * 1000 might be better
 data['Tpriming'] = -0.5 * (data['priming'] == "priming") + 0.5 * (data['priming'] != "priming")
 data['Tsyl'] = -0.5 * (data['syl'] == 2) + 0.5 * (data['syl'] != 2)
 data['Texp_type'] = -0.5 * (data['exp_type'] == "exp1") + 0.5 * (data['exp_type'] != "exp1")
-
+data["Tifanimal"] = -0.5 * (data['ifanimal'] == True) + 0.5 * (data['ifanimal'] != True)
 
 # ---------------------------------
 # Step 4/5: Write your variables and create Formula
 # ---------------------------------
 
 dep_var = "rt"
-fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
+fixed_factor = ["Tpriming", "Tsyl", "Texp_type", "Tifanimal"]
 random_factor = ["sub", "word"]
 fixed_str = " * ".join(fixed_factor)
 

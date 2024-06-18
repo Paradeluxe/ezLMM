@@ -31,7 +31,7 @@ data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 # ---------------------------------
 
 # data = data[(data['exp_type'] == "exp2") & (data['ifanimal'] == True)]
-data = data[(data['ifanimal'] == True)]
+# data = data[(data['ifanimal'] == True)]
 
 
 # ---------------------------------
@@ -54,6 +54,7 @@ data = data[(data['ifanimal'] == True)]
 data['Tpriming'] = -0.5 * (data['priming'] == "priming") + 0.5 * (data['priming'] != "priming")
 data['Tsyl'] = -0.5 * (data['syl'] == 2) + 0.5 * (data['syl'] != 2)
 data['Texp_type'] = -0.5 * (data['exp_type'] == "exp1") + 0.5 * (data['exp_type'] != "exp1")
+data["Tifanimal"] = -0.5 * (data['ifanimal'] == True) + 0.5 * (data['ifanimal'] != True)
 
 
 # ---------------------------------
@@ -61,7 +62,7 @@ data['Texp_type'] = -0.5 * (data['exp_type'] == "exp1") + 0.5 * (data['exp_type'
 # ---------------------------------
 
 dep_var = "ifcorr"
-fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
+fixed_factor = ["Tpriming", "Tsyl", "Texp_type", "Tifanimal"]
 random_factor = ["sub", "word"]
 fixed_str = " * ".join(fixed_factor)
 
@@ -79,7 +80,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = "ifcorr ~ Tpriming * Tsyl * Texp_type + (1 + Tsyl:Texp_type + Tsyl + Texp_type | sub) + (1 + Tpriming:Tsyl:Texp_type + Tsyl:Texp_type + Tsyl | word)"  # "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
+prev_formula = "" #"ifcorr ~ Tpriming * Tsyl * Texp_type + (1 + Tsyl:Texp_type + Tsyl + Texp_type | sub) + (1 + Tpriming:Tsyl:Texp_type + Tsyl:Texp_type + Tsyl | word)"  # "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
 
 
 # ---------------------------------
