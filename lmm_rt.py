@@ -12,6 +12,7 @@ emmeans = importr('emmeans')
 stats = importr("stats")
 Matrix = importr("Matrix")
 nlme = importr("nlme")
+lme4 = importr("lme4")
 
 
 # ---------------------------------
@@ -35,7 +36,7 @@ data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 
 # determine subset based on "condition==value"
 # data = data[(data['exp_type'] == "exp2") & (data['ifanimal'] == True)]
-# data = data[(data['ifanimal'] == False)]
+data = data[(data['ifanimal'] == False)]
 
 data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
 
@@ -69,7 +70,7 @@ data["Tifanimal"] = -0.5 * (data['ifanimal'] == True) + 0.5 * (data['ifanimal'] 
 # ---------------------------------
 
 dep_var = "rt"
-fixed_factor = ["Tpriming", "Tsyl", "Texp_type", "Tifanimal"]
+fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
 random_factor = ["sub", "word"]
 fixed_str = " * ".join(fixed_factor)
 
@@ -116,7 +117,7 @@ while True:
     print(f"Running FORMULA: {formula_str}")
 
     # 使用lmer函数拟合模型
-    model1 = lmerTest.lmer(formula, REML=True, data=r_data)
+    model1 = lmerTest.lmer(formula, REML=True, data=r_data, control=lme4.lmerControl("bobyqa"))
     summary_model1_r = Matrix.summary(model1)
     with localconverter(ro.default_converter + pandas2ri.converter + numpy2ri.converter):
         summary_model1 = ro.conversion.get_conversion().rpy2py(summary_model1_r)
