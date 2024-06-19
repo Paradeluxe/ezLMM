@@ -35,7 +35,7 @@ data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 # delete the line(s) you do not need, or press ctrl+/ annotating the line(s).
 
 # determine subset based on "condition==value"
-# data = data[(data['exp_type'] == "exp2") & (data['ifanimal'] == True)]
+# data = data[(data['exp_type'] == "exp1")]# & (data['ifanimal'] == True)]
 data = data[(data['ifanimal'] == False)]
 
 data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
@@ -63,7 +63,7 @@ data['rt'] = data['rt'] * 1000  # if rt is in ms, * 1000 might be better
 data['Tpriming'] = -0.5 * (data['priming'] == "priming") + 0.5 * (data['priming'] != "priming")
 data['Tsyl'] = -0.5 * (data['syl'] == 2) + 0.5 * (data['syl'] != 2)
 data['Texp_type'] = -0.5 * (data['exp_type'] == "exp1") + 0.5 * (data['exp_type'] != "exp1")
-data["Tifanimal"] = -0.5 * (data['ifanimal'] == True) + 0.5 * (data['ifanimal'] != True)
+# data["Tifanimal"] = -0.5 * (data['ifanimal'] == True) + 0.5 * (data['ifanimal'] != True)
 
 # ---------------------------------
 # Step 4/5: Write your variables and create Formula
@@ -88,7 +88,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = ""  # "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
+prev_formula = "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"#"rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"  # "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
 
 
 # ---------------------------------
@@ -97,6 +97,11 @@ prev_formula = ""  # "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) +
 
 if prev_formula:
     random_model = {kw[1]: kw[0].split(" + ") for kw in [full_item.split(")")[0].split(" | ") for full_item in prev_formula.split("(1 + ")[1:]]}
+    for key in random_factor:
+        try:
+            random_model[key]
+        except KeyError:
+            random_model[key] = []
 else:
     random_model = {key: fixed_combo[:] for key in random_factor}
 
@@ -204,14 +209,14 @@ if isGoodModel:
     print(f"Found good model")
 else:
     print(f"Found no good model")
+
+emmeans_result = emmeans.emmeans(model1, "Tsyl|Tpriming")
+print(emmeans_result)
+emmeans_result = emmeans.emmeans(model1, "Tpriming|Tsyl")
+print(emmeans_result)
+
 print(f"Last formula is {formula_str}\n\n")
 print("-------------------------------------------------------")
 print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")
 print("-------------------------------------------------------")
-# print(summary_model1)
 
-# 进行emmeans分析
-# emmeans_result = emmeans.emmeans(model1, pairwise ~ Tsyl)
-
-# 打印结果
-# print(emmeans_result)

@@ -31,7 +31,7 @@ data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 # ---------------------------------
 
 # data = data[(data['exp_type'] == "exp2") & (data['ifanimal'] == True)]
-# data = data[(data['ifanimal'] == True)]
+data = data[(data['ifanimal'] == False)]
 
 
 # ---------------------------------
@@ -62,7 +62,7 @@ data["Tifanimal"] = -0.5 * (data['ifanimal'] == True) + 0.5 * (data['ifanimal'] 
 # ---------------------------------
 
 dep_var = "ifcorr"
-fixed_factor = ["Tpriming", "Tsyl", "Texp_type", "Tifanimal"]
+fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
 random_factor = ["sub", "word"]
 fixed_str = " * ".join(fixed_factor)
 
@@ -89,6 +89,11 @@ prev_formula = "" #"ifcorr ~ Tpriming * Tsyl * Texp_type + (1 + Tsyl:Texp_type +
 
 if prev_formula:
     random_model = {kw[1]: kw[0].split(" + ") for kw in [full_item.split(")")[0].split(" | ") for full_item in prev_formula.split("(1 + ")[1:]]}
+    for key in random_factor:
+        try:
+            random_model[key]
+        except KeyError:
+            random_model[key] = []
 else:
     random_model = {key: fixed_combo[:] for key in random_factor}
 
@@ -109,7 +114,7 @@ while True:
     print(f"Running FORMULA: {formula_str}")
 
     # 使用lmer函数拟合模型
-    model1 = lme4.glmer(formula, family="binomial", data=r_data)
+    model1 = lme4.glmer(formula, family="binomial", data=r_data, control=lme4.glmerControl("bobyqa"))
     summary_model1_r = Matrix.summary(model1)
     with localconverter(ro.default_converter + pandas2ri.converter + numpy2ri.converter):
         summary_model1 = ro.conversion.get_conversion().rpy2py(summary_model1_r)
@@ -190,14 +195,14 @@ if isGoodModel:
     print(f"Found good model")
 else:
     print(f"Found no good model")
+
+emmeans_result = emmeans.emmeans(model1, "Tsyl|Tpriming")
+print(emmeans_result)
+emmeans_result = emmeans.emmeans(model1, "Tpriming|Tsyl")
+print(emmeans_result)
+
 print(f"Last formula is {formula_str}\n\n")
 print("-------------------------------------------------------")
 print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")
 print("-------------------------------------------------------")
-# print(summary_model1)
 
-# 进行emmeans分析
-# emmeans_result = emmeans.emmeans(model1, pairwise ~ Tsyl)
-
-# 打印结果
-# print(emmeans_result)
