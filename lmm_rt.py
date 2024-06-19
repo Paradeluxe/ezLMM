@@ -50,35 +50,40 @@ for sub in list(set(data["sub"])):
 
     new_data = pd.concat([new_data, filtered_sub_data], ignore_index=True)
 
-print(new_data)
-exit()
+data = new_data
+
 # Add consistency col
 for sub in list(set(data["sub"])):
     for word in list(set(data["word"])):
-        data['consistency'] = ((data['priming'] == "priming") & (data['exp_type'] == "exp1")).astype(int)
+        data['consistency'] = ((data['priming'] == "priming") & (data['exp_type'] == "exp1") | (data['priming'] == "primingeq") & (data['exp_type'] == "exp2")).astype(int)
 
 # Save only both exists
 for sub in list(set(data["sub"].tolist())):
     for word in list(set(data["word"].tolist())):
+
         if not len(data[(data["sub"] == sub) & (data["word"] == word)]) == 2:
-            data = data[~(data["sub"] == sub) & ~(data["word"] == word)]
+            data = data[~((data["sub"] == sub) & (data["word"] == word))]
+
+
 # Subtract A with B
-for sub in list(set(data["sub"].tolist())):
-    for word in list(set(data["word"].tolist())):
-        print(sub, word)
-        # print(data[(data["sub"] == sub) & (data["word"] == word) & (data["consistency"] == 1)])
+df1 = data[data['consistency'] == 1]
+df1 = df1.sort_values(by=["sub", "word"])
+df1 = df1.reset_index(drop=False)
 
-        exit()
-        # data[(data["sub"] == sub) & (data["word"] == word)]['rt_diff'] =
-print(data)
-exit()
-data = data[(data['ifanimal'] == False)]
+df0 = data[data['consistency'] == 0]
+df0 = df0.sort_values(by=["sub", "word"])
+df0 = df0.reset_index(drop=False)
 
+
+df1["rt_diff"] = df1["rt"] - df0["rt"]
+
+data = df1.copy()
+# data = data.set_index(keys="sub")
 data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
 
-data['rt'] = data['rt'] * 1000  # if rt is in ms, * 1000 might be better
+data['rt_diff'] = data['rt_diff'] * 1000  # if rt is in ms, * 1000 might be better
 
-
+print("Data collected!")
 # ---------------------------------
 # Step 3/5: Code your variables!!!
 # ---------------------------------
@@ -105,7 +110,7 @@ data['Texp_type'] = -0.5 * (data['exp_type'] == "exp1") + 0.5 * (data['exp_type'
 # Step 4/5: Write your variables and create Formula
 # ---------------------------------
 
-dep_var = "rt"
+dep_var = "rt_diff"
 fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
 random_factor = ["sub", "word"]
 
@@ -124,7 +129,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"#"rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"  # "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
+prev_formula = ""#"rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"  # "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
 
 
 # ---------------------------------
