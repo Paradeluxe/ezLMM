@@ -36,6 +36,12 @@ data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 
 # determine subset based on "condition==value"
 # data = data[(data['exp_type'] == "exp1")]# & (data['ifanimal'] == True)]
+
+# Preserve data only within 2.5 * SD
+mean_rt = data['rt'].mean()
+std_rt = data['rt'].std()
+data = data[(data['rt'] > (mean_rt - 2.5 * std_rt)) & (data['rt'] < (mean_rt + 2.5 * std_rt))]
+
 data = data[(data['ifanimal'] == False)]
 
 data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
@@ -72,12 +78,12 @@ data['Texp_type'] = -0.5 * (data['exp_type'] == "exp1") + 0.5 * (data['exp_type'
 dep_var = "rt"
 fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
 random_factor = ["sub", "word"]
-fixed_str = " * ".join(fixed_factor)
 
 # ---------------------------------
 # ABOVE IS OK. DO NOT TOUCH BELOW.
 # ---------------------------------
 
+fixed_str = " * ".join(fixed_factor)
 fixed_combo = []
 for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
     for combo in itertools.combinations(fixed_factor, i):

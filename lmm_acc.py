@@ -29,6 +29,9 @@ data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 # ---------------------------------
 # Step 2/5: Select SUBSET!!!
 # ---------------------------------
+mean_rt = data['rt'].mean()
+std_rt = data['rt'].std()
+data = data[(data['rt'] > (mean_rt - 2.5 * std_rt)) & (data['rt'] < (mean_rt + 2.5 * std_rt))]
 
 # data = data[(data['exp_type'] == "exp2") & (data['ifanimal'] == True)]
 data = data[(data['ifanimal'] == False)]
