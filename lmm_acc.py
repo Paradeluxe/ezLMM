@@ -196,9 +196,9 @@ if isGoodModel:
 else:
     print(f"Found no good model")
 
-emmeans_result = emmeans.emmeans(model1, "Tsyl|Tpriming")
+emmeans_result = emmeans.emmeans(model1, specs="Tsyl:Tpriming")
 print(emmeans_result)
-emmeans_result = emmeans.emmeans(model1, "Tpriming|Tsyl")
+emmeans_result = emmeans.emmeans(model1, specs="Tpriming:Tsyl")
 print(emmeans_result)
 
 print(f"Last formula is {formula_str}\n\n")
