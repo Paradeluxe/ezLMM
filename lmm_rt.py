@@ -14,7 +14,7 @@ Matrix = importr("Matrix")
 nlme = importr("nlme")
 lme4 = importr("lme4")
 
-
+pd.set_option("display.max_columns", None)
 # ---------------------------------
 # ----------> For USERS >----------
 # ---------------------------------
@@ -23,25 +23,55 @@ lme4 = importr("lme4")
 # Step 1/5: Select SUBSET!!!
 # ---------------------------------
 
-# Read .csv data (it can accept formats like .xlsx, just chagne pd.read_XXX)
+# Read .csv data (it can accept formats like .xlsx, just change pd.read_XXX)
 data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 
 
 # ---------------------------------
 # Step 2/5: Select SUBSET!!!
 # ---------------------------------
-
 # Note: If you do not want to select subset,
 # delete the line(s) you do not need, or press ctrl+/ annotating the line(s).
 
-# determine subset based on "condition==value"
-# data = data[(data['exp_type'] == "exp1")]# & (data['ifanimal'] == True)]
+new_data = pd.DataFrame()
 
 # Preserve data only within 2.5 * SD
-mean_rt = data['rt'].mean()
-std_rt = data['rt'].std()
-data = data[(data['rt'] > (mean_rt - 2.5 * std_rt)) & (data['rt'] < (mean_rt + 2.5 * std_rt))]
+for sub in list(set(data["sub"])):
+    sub_data = data[data["sub"] == sub]
 
+    # 计算'rt'列的均值和标准差
+    mean_rt = sub_data['rt'].mean()
+    std_rt = sub_data['rt'].std()
+
+    # 根据均值和标准差筛选数据
+    filtered_sub_data = sub_data[(sub_data['rt'] > (mean_rt - 2.5 * std_rt)) &
+                                 (sub_data['rt'] < (mean_rt + 2.5 * std_rt))]
+    # 将筛选后的数据追加到new_data中
+
+    new_data = pd.concat([new_data, filtered_sub_data], ignore_index=True)
+
+print(new_data)
+exit()
+# Add consistency col
+for sub in list(set(data["sub"])):
+    for word in list(set(data["word"])):
+        data['consistency'] = ((data['priming'] == "priming") & (data['exp_type'] == "exp1")).astype(int)
+
+# Save only both exists
+for sub in list(set(data["sub"].tolist())):
+    for word in list(set(data["word"].tolist())):
+        if not len(data[(data["sub"] == sub) & (data["word"] == word)]) == 2:
+            data = data[~(data["sub"] == sub) & ~(data["word"] == word)]
+# Subtract A with B
+for sub in list(set(data["sub"].tolist())):
+    for word in list(set(data["word"].tolist())):
+        print(sub, word)
+        # print(data[(data["sub"] == sub) & (data["word"] == word) & (data["consistency"] == 1)])
+
+        exit()
+        # data[(data["sub"] == sub) & (data["word"] == word)]['rt_diff'] =
+print(data)
+exit()
 data = data[(data['ifanimal'] == False)]
 
 data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
