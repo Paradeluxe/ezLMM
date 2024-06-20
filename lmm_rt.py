@@ -104,14 +104,15 @@ print("Data collected!")
 data['Tpriming'] = -0.5 * (data['priming'] == "priming") + 0.5 * (data['priming'] != "priming")
 data['Tsyl'] = -0.5 * (data['syl'] == 2) + 0.5 * (data['syl'] != 2)
 data['Texp_type'] = -0.5 * (data['exp_type'] == "exp1") + 0.5 * (data['exp_type'] != "exp1")
-# data["Tifanimal"] = -0.5 * (data['ifanimal'] == True) + 0.5 * (data['ifanimal'] != True)
+data["Tifanimal"] = -0.5 * (data['ifanimal'] == True) + 0.5 * (data['ifanimal'] != True)
 
+# data.to_csv("Data_Exp_rtdiff.csv", index=False)
 # ---------------------------------
 # Step 4/5: Write your variables and create Formula
 # ---------------------------------
 
 dep_var = "rt_diff"
-fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
+fixed_factor = ["Tifanimal", "Tsyl", "Texp_type"]
 random_factor = ["sub", "word"]
 
 # ---------------------------------
