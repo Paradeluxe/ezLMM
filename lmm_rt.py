@@ -26,7 +26,7 @@ pd.set_option("display.max_columns", None)
 # Read .csv data (it can accept formats like .xlsx, just change pd.read_XXX)
 data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 
-
+print("Reading Data——>>>", end="")
 # ---------------------------------
 # Step 2/5: Select SUBSET!!!
 # ---------------------------------
@@ -50,13 +50,13 @@ for sub in list(set(data["sub"])):
 
     new_data = pd.concat([new_data, filtered_sub_data], ignore_index=True)
 
-data = new_data
+data = new_data.copy()
 
 # Add consistency col
 for sub in list(set(data["sub"])):
     for word in list(set(data["word"])):
-        data['consistency'] = ((data['priming'] == "priming") & (data['exp_type'] == "exp1") | (data['priming'] == "primingeq") & (data['exp_type'] == "exp2")).astype(int)
-
+        data['consistency'] = (((data['priming'] == "priming") & (data['exp_type'] == "exp1")) | ((data['priming'] == "primingeq") & (data['exp_type'] == "exp2"))).astype(int)
+"""
 # Save only both exists
 for sub in list(set(data["sub"].tolist())):
     for word in list(set(data["word"].tolist())):
@@ -82,6 +82,9 @@ data = df1.copy()
 data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
 
 data['rt_diff'] = data['rt_diff'] * 1000  # if rt is in ms, * 1000 might be better
+"""
+# data = data[data['exp_type'] == "exp1"]  # pick out one exp
+data = data[data['ifanimal'] == False]  # pick out one exp
 
 print("Data collected!")
 # ---------------------------------
@@ -105,14 +108,15 @@ data['Tpriming'] = -0.5 * (data['priming'] == "priming") + 0.5 * (data['priming'
 data['Tsyl'] = -0.5 * (data['syl'] == 2) + 0.5 * (data['syl'] != 2)
 data['Texp_type'] = -0.5 * (data['exp_type'] == "exp1") + 0.5 * (data['exp_type'] != "exp1")
 data["Tifanimal"] = -0.5 * (data['ifanimal'] == True) + 0.5 * (data['ifanimal'] != True)
+data["Tconsistency"] = -0.5 * (data['consistency'] == 1) + 0.5 * (data['consistency'] != 1)
 
 # data.to_csv("Data_Exp_rtdiff.csv", index=False)
 # ---------------------------------
 # Step 4/5: Write your variables and create Formula
 # ---------------------------------
 
-dep_var = "rt_diff"
-fixed_factor = ["Tifanimal", "Tsyl", "Texp_type"]
+dep_var = "rt"
+fixed_factor = ["Tsyl", "Tconsistency", "Texp_type"]
 random_factor = ["sub", "word"]
 
 # ---------------------------------
@@ -130,8 +134,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = ""#"rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"  # "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
-
+prev_formula = "" #"rt ~ Tifanimal * Tsyl * Tconsistency + (1 | sub) + (1 + Tifanimal:Tsyl + Tifanimal | word)"
 
 # ---------------------------------
 # ----------< For USERS <----------
