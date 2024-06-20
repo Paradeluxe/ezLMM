@@ -175,7 +175,9 @@ while True:
         print(f"Exclude random model item: {ff2ex} | {rf2ex}")
 
         # Processing EXCLUSION
-        random_model[rf2ex].remove(ff2ex)
+        for ff2ex_item in random_model[rf2ex]:
+            if sorted(ff2ex_item.split(":")) == sorted(ff2ex.split(":")):
+                random_model[rf2ex].remove(ff2ex_item)
         # print(random_model)
         print("---\n---")
 
