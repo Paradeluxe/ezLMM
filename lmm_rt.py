@@ -139,7 +139,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = ""  # "rt ~ Tsyl * Tconsistency * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl:Tconsistency:Texp_type + Tsyl | word)" #"rt ~ Tifanimal * Tsyl * Tconsistency + (1 | sub) + (1 + Tifanimal:Tsyl + Tifanimal | word)"
+prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 + Texp_type:Tsyl | sub) + (1 + Tsyl | word)"  # "rt ~ Tsyl * Tconsistency * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl:Tconsistency:Texp_type + Tsyl | word)" #"rt ~ Tifanimal * Tsyl * Tconsistency + (1 | sub) + (1 + Tifanimal:Tsyl + Tifanimal | word)"
 
 # ---------------------------------
 # ----------< For USERS <----------
@@ -229,7 +229,9 @@ while True:
         rf2ex = df.loc[df[2].idxmin(0)][0]
         ff2ex = df.loc[df[2].idxmin(0)][1]
 
-
+        if not any(random_model.values()):
+            print("Every model failed")
+            break
         print(f"Exclude random model item: {ff2ex} | {rf2ex}")
 
         # Processing EXCLUSION
@@ -252,8 +254,7 @@ print(anova_model1)
 
 with (ro.default_converter + pandas2ri.converter).context():
     anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
-print(anova_model1[0])
-print(anova_model1["Pr(>F)"])
+
 
 # model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
 # summary_model1_r = Matrix.summary(model1)
@@ -267,9 +268,9 @@ emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs="Texp_type", by=
 print(emmeans_result)
 
 emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs="Tsyl", by="Texp_type"),"pairwise", adjust="bonferroni")
-
 print(emmeans_result)
-
+print(anova_model1)
+print(anova_model1["Pr(>F)"])
 print(f"Last formula is {formula_str}\n\n")
 print("-------------------------------------------------------")
 print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")

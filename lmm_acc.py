@@ -171,7 +171,9 @@ while True:
     else:
         rf2ex = df.loc[df[2].idxmin(0)][0]
         ff2ex = df.loc[df[2].idxmin(0)][1]
-
+        if not any(random_model.values()):
+            print("Every model failed")
+            break
         print(f"Exclude random model item: {ff2ex} | {rf2ex}")
 
         # Processing EXCLUSION
@@ -181,9 +183,7 @@ while True:
         # print(random_model)
         print("---\n---")
 
-    if not any(random_model.values()):
 
-        break
 
 
     # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
