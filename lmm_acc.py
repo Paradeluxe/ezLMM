@@ -25,17 +25,42 @@ nlme = importr("nlme")
 # Read .csv data (it can accept formats like .xlsx, just chagne pd.read_XXX)
 data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 
-
+print("Reading Data——>>>", end="")
 # ---------------------------------
 # Step 2/5: Select SUBSET!!!
 # ---------------------------------
-mean_rt = data['rt'].mean()
-std_rt = data['rt'].std()
-data = data[(data['rt'] > (mean_rt - 2.5 * std_rt)) & (data['rt'] < (mean_rt + 2.5 * std_rt))]
+# Note: If you do not want to select subset,
+# delete the line(s) you do not need, or press ctrl+/ annotating the line(s).
 
-# data = data[(data['exp_type'] == "exp2") & (data['ifanimal'] == True)]
-data = data[(data['ifanimal'] == False)]
 
+
+# Preserve data only within 2.5 * SD
+new_data = pd.DataFrame()
+for sub in list(set(data["sub"])):
+    sub_data = data[data["sub"] == sub]
+
+    # 计算'rt'列的均值和标准差
+    mean_rt = sub_data['rt'].mean()
+    std_rt = sub_data['rt'].std()
+
+    # 根据均值和标准差筛选数据
+    filtered_sub_data = sub_data[(sub_data['rt'] > (mean_rt - 2.5 * std_rt)) &
+                                 (sub_data['rt'] < (mean_rt + 2.5 * std_rt))]
+    # 将筛选后的数据追加到new_data中
+
+    new_data = pd.concat([new_data, filtered_sub_data], ignore_index=True)
+
+data = new_data.copy()
+
+# Add consistency col
+for sub in list(set(data["sub"])):
+    for word in list(set(data["word"])):
+        data['consistency'] = (((data['priming'] == "priming") & (data['exp_type'] == "exp1")) | ((data['priming'] == "primingeq") & (data['exp_type'] == "exp2"))).astype(int)
+
+# data = data[data['exp_type'] == "exp1"]  # pick out one exp
+data = data[data['ifanimal'] == True]  # pick out one exp
+
+print("Data collected!")
 
 # ---------------------------------
 # Step 3/5: Code your variables!!!
@@ -58,6 +83,7 @@ data['Tpriming'] = -0.5 * (data['priming'] == "priming") + 0.5 * (data['priming'
 data['Tsyl'] = -0.5 * (data['syl'] == 2) + 0.5 * (data['syl'] != 2)
 data['Texp_type'] = -0.5 * (data['exp_type'] == "exp1") + 0.5 * (data['exp_type'] != "exp1")
 data["Tifanimal"] = -0.5 * (data['ifanimal'] == True) + 0.5 * (data['ifanimal'] != True)
+data["Tconsistency"] = -0.5 * (data['consistency'] == 1) + 0.5 * (data['consistency'] != 1)
 
 
 # ---------------------------------
@@ -76,6 +102,8 @@ fixed_str = " * ".join(fixed_factor)
 fixed_combo = []
 for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
     for combo in itertools.combinations(fixed_factor, i):
+        combo = list(combo)
+        combo.sort()
         fixed_combo.append(":".join(combo))
 
 
@@ -174,6 +202,7 @@ while True:
         if not any(random_model.values()):
             print("Every model failed")
             break
+
         print(f"Exclude random model item: {ff2ex} | {rf2ex}")
 
         # Processing EXCLUSION
@@ -183,29 +212,37 @@ while True:
         # print(random_model)
         print("---\n---")
 
-
-
-
     # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
     # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
 
 
 print(summary_model1_r)
-
 anova_model1 = car.Anova(model1, type=3, test="Chisq")
-print(anova_model1)
+
 with (ro.default_converter + pandas2ri.converter).context():
     anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
-if isGoodModel:
-    print(f"Found good model")
-else:
-    print(f"Found no good model")
 
-emmeans_result = emmeans.emmeans(model1, specs="Tsyl:Tpriming")
-print(emmeans_result)
-emmeans_result = emmeans.emmeans(model1, specs="Tpriming:Tsyl")
-print(emmeans_result)
 
+
+for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
+    sig_items = sig_items.split(":")
+    item_num = len(sig_items)
+    if item_num == 1:
+        print(f"Main Effect {sig_items}")
+        emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
+        print(emmeans_result)
+
+    elif item_num == 2:
+        print(f"2-way Interaction {sig_items}")
+        emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[0], by=sig_items[1]), "pairwise", adjust="bonferroni")
+        print(emmeans_result)
+        emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[1], by=sig_items[0]), "pairwise", adjust="bonferroni")
+        print(emmeans_result)
+
+    elif item_num >= 3:
+        print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
+
+print(f"Last formula is {formula_str}\nIt is {isGoodModel}\n")
 print(f"Last formula is {formula_str}\n\n")
 print("-------------------------------------------------------")
 print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")

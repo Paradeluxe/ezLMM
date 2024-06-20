@@ -33,9 +33,10 @@ print("Reading Data——>>>", end="")
 # Note: If you do not want to select subset,
 # delete the line(s) you do not need, or press ctrl+/ annotating the line(s).
 
-new_data = pd.DataFrame()
 
 # Preserve data only within 2.5 * SD
+new_data = pd.DataFrame()
+
 for sub in list(set(data["sub"])):
     sub_data = data[data["sub"] == sub]
 
@@ -80,12 +81,11 @@ df1["rt_diff"] = df1["rt"] - df0["rt"]
 data = df1.copy()
 """
 
-# data = data.set_index(keys="sub")
 data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
 
 # data['rt_diff'] = data['rt_diff'] * 1000  # if rt is in ms, * 1000 might be better
 # data = data[data['exp_type'] == "exp1"]  # pick out one exp
-data = data[data['ifanimal'] == False]  # pick out one exp
+data = data[data['ifanimal'] == True]  # pick out one exp
 
 print("Data collected!")
 # ---------------------------------
@@ -139,7 +139,8 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 + Texp_type:Tsyl | sub) + (1 + Tsyl | word)"  # "rt ~ Tsyl * Tconsistency * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl:Tconsistency:Texp_type + Tsyl | word)" #"rt ~ Tifanimal * Tsyl * Tconsistency + (1 | sub) + (1 + Tifanimal:Tsyl + Tifanimal | word)"
+prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl:Tconsistency:Texp_type + Tsyl | word)" # rt ~ Tsyl * Tconsistency * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl:Tconsistency:Texp_type + Tsyl | word)
+
 
 # ---------------------------------
 # ----------< For USERS <----------
@@ -232,6 +233,7 @@ while True:
         if not any(random_model.values()):
             print("Every model failed")
             break
+
         print(f"Exclude random model item: {ff2ex} | {rf2ex}")
 
         # Processing EXCLUSION
@@ -240,18 +242,15 @@ while True:
                 random_model[rf2ex].remove(ff2ex_item)
         # print(random_model)
         print("---\n---")
-    # time.sleep(5)
+
     # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
     # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
-    if not any(random_model.values()):
-        print("Every model failed")
-        break
+
+
 print(summary_model1_r)
 anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
 
 # anova_model1 change format
-print(anova_model1)
-
 with (ro.default_converter + pandas2ri.converter).context():
     anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
 
@@ -259,19 +258,26 @@ with (ro.default_converter + pandas2ri.converter).context():
 # model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
 # summary_model1_r = Matrix.summary(model1)
 # print(summary_model1_r)
-if isGoodModel:
-    print(f"Found good model")
-else:
-    print(f"Found no good model")
 
-emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs="Texp_type", by="Tsyl"),"pairwise", adjust="bonferroni")
-print(emmeans_result)
+for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
+    sig_items = sig_items.split(":")
+    item_num = len(sig_items)
+    if item_num == 1:
+        print(f"Main Effect {sig_items}")
+        emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
+        print(emmeans_result)
 
-emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs="Tsyl", by="Texp_type"),"pairwise", adjust="bonferroni")
-print(emmeans_result)
-print(anova_model1)
-print(anova_model1["Pr(>F)"])
-print(f"Last formula is {formula_str}\n\n")
+    elif item_num == 2:
+        print(f"2-way Interaction {sig_items}")
+        emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[0], by=sig_items[1]), "pairwise", adjust="bonferroni")
+        print(emmeans_result)
+        emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[1], by=sig_items[0]), "pairwise", adjust="bonferroni")
+        print(emmeans_result)
+
+    elif item_num >= 3:
+        print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
+
+print(f"Last formula is {formula_str}\nIt is {isGoodModel}\n")
 print("-------------------------------------------------------")
 print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")
 print("-------------------------------------------------------")
