@@ -228,13 +228,13 @@ while True:
     else:
         rf2ex = df.loc[df[2].idxmin(0)][0]
         ff2ex = df.loc[df[2].idxmin(0)][1].split(":")
-        ff2ex.sort()
-        ff2ex = ":".join(ff2ex)
+
 
         print(f"Exclude random model item: {ff2ex} | {rf2ex}")
 
         # Processing EXCLUSION
-        random_model[rf2ex].remove(ff2ex)
+        for ff2ex_item in random_model[rf2ex]:
+            random_model[rf2ex].remove(ff2ex)
         # print(random_model)
         print("---\n---")
     # time.sleep(5)
