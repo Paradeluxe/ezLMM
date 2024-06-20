@@ -85,7 +85,7 @@ data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
 
 # data['rt_diff'] = data['rt_diff'] * 1000  # if rt is in ms, * 1000 might be better
 # data = data[data['exp_type'] == "exp1"]  # pick out one exp
-data = data[data['ifanimal'] == True]  # pick out one exp
+data = data[data['ifanimal'] == False]  # pick out one exp
 
 print("Data collected!")
 # ---------------------------------
@@ -139,7 +139,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl:Tconsistency:Texp_type + Tsyl | word)" #"rt ~ Tifanimal * Tsyl * Tconsistency + (1 | sub) + (1 + Tifanimal:Tsyl + Tifanimal | word)"
+prev_formula = ""  # "rt ~ Tsyl * Tconsistency * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl:Tconsistency:Texp_type + Tsyl | word)" #"rt ~ Tifanimal * Tsyl * Tconsistency + (1 | sub) + (1 + Tifanimal:Tsyl + Tifanimal | word)"
 
 # ---------------------------------
 # ----------< For USERS <----------
@@ -252,8 +252,8 @@ print(anova_model1)
 
 with (ro.default_converter + pandas2ri.converter).context():
     anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
-
-# print(anova_model1["Pr(>F)"])
+print(anova_model1[0])
+print(anova_model1["Pr(>F)"])
 
 # model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
 # summary_model1_r = Matrix.summary(model1)
@@ -263,9 +263,11 @@ if isGoodModel:
 else:
     print(f"Found no good model")
 
-emmeans_result = emmeans.emmeans(model1, specs="Tsyl:Tpriming")
+emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs="Texp_type", by="Tsyl"),"pairwise", adjust="bonferroni")
 print(emmeans_result)
-emmeans_result = emmeans.emmeans(model1, specs="Tpriming:Tsyl")
+
+emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs="Tsyl", by="Texp_type"),"pairwise", adjust="bonferroni")
+
 print(emmeans_result)
 
 print(f"Last formula is {formula_str}\n\n")
