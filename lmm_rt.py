@@ -78,13 +78,14 @@ df0 = df0.reset_index(drop=False)
 df1["rt_diff"] = df1["rt"] - df0["rt"]
 
 data = df1.copy()
+"""
+
 # data = data.set_index(keys="sub")
 data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
 
-data['rt_diff'] = data['rt_diff'] * 1000  # if rt is in ms, * 1000 might be better
-"""
+# data['rt_diff'] = data['rt_diff'] * 1000  # if rt is in ms, * 1000 might be better
 # data = data[data['exp_type'] == "exp1"]  # pick out one exp
-data = data[data['ifanimal'] == False]  # pick out one exp
+data = data[data['ifanimal'] == True]  # pick out one exp
 
 print("Data collected!")
 # ---------------------------------
@@ -123,18 +124,22 @@ random_factor = ["sub", "word"]
 # ABOVE IS OK. DO NOT TOUCH BELOW.
 # ---------------------------------
 
+
 fixed_str = " * ".join(fixed_factor)
 fixed_combo = []
 for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
     for combo in itertools.combinations(fixed_factor, i):
+        combo = list(combo)
+        combo.sort()
         fixed_combo.append(":".join(combo))
+        # print(":".join(combo))
 
 
 # ---------------------------------
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = "" #"rt ~ Tifanimal * Tsyl * Tconsistency + (1 | sub) + (1 + Tifanimal:Tsyl + Tifanimal | word)"
+prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl:Tconsistency:Texp_type + Tsyl | word)" #"rt ~ Tifanimal * Tsyl * Tconsistency + (1 | sub) + (1 + Tifanimal:Tsyl + Tifanimal | word)"
 
 # ---------------------------------
 # ----------< For USERS <----------
@@ -222,7 +227,9 @@ while True:
         break
     else:
         rf2ex = df.loc[df[2].idxmin(0)][0]
-        ff2ex = df.loc[df[2].idxmin(0)][1]
+        ff2ex = df.loc[df[2].idxmin(0)][1].split(":")
+        ff2ex.sort()
+        ff2ex = ":".join(ff2ex)
 
         print(f"Exclude random model item: {ff2ex} | {rf2ex}")
 
