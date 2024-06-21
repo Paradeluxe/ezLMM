@@ -1,3 +1,110 @@
+[[[[ ifanimal = True ]]]]
+structure(list(optimizer = "bobyqa", restart_edge = TRUE, boundary.tol = 1e-05,
+    calc.derivs = TRUE, use.last.params = FALSE, checkControl = list(
+        check.nobs.vs.rankZ = "ignore", check.nobs.vs.nlev = "stop",
+        check.nlev.gtreq.5 = "ignore", check.nlev.gtr.1 = "stop",
+        check.nobs.vs.nRE = "stop", check.rankX = "message+drop.cols",
+        check.scaleX = "warning", check.formula.LHS = "stop"),
+    checkConv = list(check.conv.grad = list(action = "warning",
+        tol = 0.002, relTol = NULL), check.conv.singular = list(
+        action = "message", tol = 1e-04), check.conv.hess = list(
+        action = "warning", tol = 1e-06)), optCtrl = list()), class = c("lmerControl",
+"merControl"))
+
+REML criterion at convergence: 1220.5
+
+Scaled residuals:
+    Min      1Q  Median      3Q     Max
+-2.7237 -0.6693 -0.1462  0.5763  4.3779
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ sub      (Intercept) 0.05002  0.2236
+ word     (Intercept) 0.01182  0.1087
+ Residual             0.09727  0.3119
+Number of obs: 1896, groups:  sub, 63; word, 24
+
+Fixed effects:
+                              Estimate Std. Error         df t value Pr(>|t|)
+(Intercept)                  1.383e+00  3.691e-02  7.104e+01  37.454  < 2e-16
+Tsyl                         1.612e-01  4.745e-02  2.287e+01   3.396  0.00249
+Tconsistency                 7.588e-03  1.444e-02  1.808e+03   0.525  0.59946
+Texp_type                    1.001e-01  5.834e-02  6.034e+01   1.716  0.09138
+Tsyl:Tconsistency           -1.612e-02  2.890e-02  1.808e+03  -0.558  0.57705
+Tsyl:Texp_type               8.805e-02  2.907e-02  1.812e+03   3.029  0.00249
+Tconsistency:Texp_type       3.843e-02  2.888e-02  1.807e+03   1.331  0.18346
+Tsyl:Tconsistency:Texp_type -1.561e-02  5.781e-02  1.808e+03  -0.270  0.78722
+
+(Intercept)                 ***
+Tsyl                        **
+Tconsistency
+Texp_type                   .
+Tsyl:Tconsistency
+Tsyl:Texp_type              **
+Tconsistency:Texp_type
+Tsyl:Tconsistency:Texp_type
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) Tsyl   Tcnsst Txp_ty Tsyl:T Tsy:T_ Tcn:T_
+Tsyl         0.017
+Tconsistncy  0.003  0.004
+Texp_type    0.038 -0.003  0.000
+Tsyl:Tcnsst  0.003  0.004  0.071  0.002
+Tsyl:Txp_ty -0.008  0.014  0.005  0.017 -0.002
+Tcnsstnc:T_ -0.001 -0.001  0.051  0.004 -0.014  0.013
+Tsyl:Tcn:T_  0.000 -0.003 -0.013  0.003  0.054  0.013  0.071
+
+Main Effect ['Tsyl']
+R[write to console]: NOTE: Results may be misleading due to involvement in interactions
+
+ contrast             estimate     SE   df t.ratio p.value
+ (Tsyl-0.5) - Tsyl0.5   -0.161 0.0475 21.8  -3.394  0.0026
+
+Results are averaged over the levels of: Tconsistency, Texp_type
+Degrees-of-freedom method: kenward-roger
+
+2-way Interaction ['Tsyl', 'Texp_type']
+R[write to console]: NOTE: Results may be misleading due to involvement in interactions
+
+Texp_type = -0.5:
+ contrast             estimate     SE   df t.ratio p.value
+ (Tsyl-0.5) - Tsyl0.5   -0.117 0.0495 25.7  -2.368  0.0257
+
+Texp_type =  0.5:
+ contrast             estimate     SE   df t.ratio p.value
+ (Tsyl-0.5) - Tsyl0.5   -0.205 0.0499 26.6  -4.116  0.0003
+
+Results are averaged over the levels of: Tconsistency
+Degrees-of-freedom method: kenward-roger
+
+R[write to console]: NOTE: Results may be misleading due to involvement in interactions
+
+Tsyl = -0.5:
+ contrast                       estimate     SE   df t.ratio p.value
+ (Texp_type-0.5) - Texp_type0.5  -0.0561 0.0599 67.7  -0.936  0.3525
+
+Tsyl =  0.5:
+ contrast                       estimate     SE   df t.ratio p.value
+ (Texp_type-0.5) - Texp_type0.5  -0.1441 0.0604 69.9  -2.387  0.0197
+
+Results are averaged over the levels of: Tconsistency
+Degrees-of-freedom method: kenward-roger
+
+Last formula is rt ~ Tsyl * Tconsistency * Texp_type + (1 | sub) + (1 | word)
+It is True
+
+
+
+
+
+
+
+
+
+-----------------------------------------------
+
 if_animal - all
 ifcorr ~ Tpriming * Tsyl * Texp_type + (1 | sub) + (1 + Tsyl | word)
 rt ~ Tpriming * Tsyl * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl | word)
