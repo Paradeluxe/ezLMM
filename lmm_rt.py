@@ -139,7 +139,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl:Tconsistency:Texp_type + Tsyl | word)" # rt ~ Tsyl * Tconsistency * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl:Tconsistency:Texp_type + Tsyl | word)
+prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 | sub) + (1 | word)"
 
 
 # ---------------------------------
