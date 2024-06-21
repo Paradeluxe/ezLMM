@@ -260,6 +260,8 @@ with (ro.default_converter + pandas2ri.converter).context():
 # print(summary_model1_r)
 
 for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
+    if "ntercept" in sig_items:
+        continue
     sig_items = sig_items.split(":")
     item_num = len(sig_items)
     if item_num == 1:
