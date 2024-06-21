@@ -111,7 +111,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = "" #"ifcorr ~ Tpriming * Tsyl * Texp_type + (1 + Tsyl:Texp_type + Tsyl + Texp_type | sub) + (1 + Tpriming:Tsyl:Texp_type + Tsyl:Texp_type + Tsyl | word)"  # "rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)"
+prev_formula = "ifcorr ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type:Tsyl + Texp_type | sub) + (1 | word)"
 
 
 # ---------------------------------
@@ -197,11 +197,13 @@ while True:
         print(f"Formula {formula_str} is a good model.")
         break
     else:
-        rf2ex = df.loc[df[2].idxmin(0)][0]
-        ff2ex = df.loc[df[2].idxmin(0)][1]
         if not any(random_model.values()):
             print("Every model failed")
             break
+
+        rf2ex = df.loc[df[2].idxmin(0)][0]
+        ff2ex = df.loc[df[2].idxmin(0)][1]
+
 
         print(f"Exclude random model item: {ff2ex} | {rf2ex}")
 
@@ -222,9 +224,11 @@ anova_model1 = car.Anova(model1, type=3, test="Chisq")
 with (ro.default_converter + pandas2ri.converter).context():
     anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
 
+print(anova_model1)
 
-
-for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
+for sig_items in anova_model1[anova_model1["Pr(>Chisq)"] <= 0.05].index.tolist():
+    if "ntercept" in sig_items:
+        continue
     sig_items = sig_items.split(":")
     item_num = len(sig_items)
     if item_num == 1:
@@ -243,7 +247,6 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
         print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
 
 print(f"Last formula is {formula_str}\nIt is {isGoodModel}\n")
-print(f"Last formula is {formula_str}\n\n")
 print("-------------------------------------------------------")
 print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")
 print("-------------------------------------------------------")
