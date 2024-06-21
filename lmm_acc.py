@@ -91,7 +91,7 @@ data["Tconsistency"] = -0.5 * (data['consistency'] == 1) + 0.5 * (data['consiste
 # ---------------------------------
 
 dep_var = "ifcorr"
-fixed_factor = ["Tpriming", "Tsyl", "Texp_type"]
+fixed_factor = ["Tconsistency", "Tsyl", "Texp_type"]
 random_factor = ["sub", "word"]
 fixed_str = " * ".join(fixed_factor)
 
@@ -111,7 +111,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = "ifcorr ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type:Tsyl + Texp_type | sub) + (1 | word)"
+prev_formula = ""
 
 
 # ---------------------------------
