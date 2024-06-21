@@ -1,0 +1,121 @@
+if_animal - all
+ifcorr ~ Tpriming * Tsyl * Texp_type + (1 | sub) + (1 + Tsyl | word)
+rt ~ Tpriming * Tsyl * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl | word)
+
+
+if_animal - False
+acc - not converged but, get the interaction significant
+none
+
+
+if_animal - False; rest - all
+rt ~ Tpriming * Tsyl * Texp_type + (1 + Texp_type | sub) + (1 | word)
+
+Type III Analysis of Variance Table with Kenward-Roger's method
+                        Sum Sq Mean Sq NumDF   DenDF F value  Pr(>F)
+Tpriming                  7072    7072     1 2708.54  0.0741 0.78549
+Tsyl                     70645   70645     1   22.00  0.7401 0.39890
+Texp_type               320368  320368     1   56.54  3.3563 0.07222 .
+Tpriming:Tsyl           409143  409143     1 2708.78  4.2864 0.03851 *
+Tpriming:Texp_type       13341   13341     1 2708.47  0.1398 0.70854
+Tsyl:Texp_type            1490    1490     1 2709.17  0.0156 0.90058
+Tpriming:Tsyl:Texp_type  19767   19767     1 2708.72  0.2071 0.64909
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+
+exp_type - exp2; rest - all
+Fixed effects:
+                        Estimate Std. Error       df t value Pr(>|t|)
+(Intercept)             1401.474     44.463   41.097  31.520  < 2e-16 ***
+Tpriming                  -6.664     14.394 2162.969  -0.463  0.64344
+Tsyl                     120.937     40.685   33.353   2.973  0.00545 **
+Tifanimal                -72.494     40.719   33.455  -1.780  0.08411 .
+Tpriming:Tsyl            -17.433     28.803 2163.208  -0.605  0.54507
+Tpriming:Tifanimal        26.721     28.784 2163.004   0.928  0.35334
+Tsyl:Tifanimal          -138.419     81.375   33.361  -1.701  0.09825 .
+Tpriming:Tsyl:Tifanimal  -84.360     57.607 2163.101  -1.464  0.14323
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+exp_type - exp1; rest - all
+Type III Analysis of Variance Table with Kenward-Roger's method
+                        Sum Sq Mean Sq NumDF   DenDF F value  Pr(>F)
+Tpriming                  3321    3321     1 2405.27  0.0353 0.85093
+Tsyl                    575767  575767     1   37.13  6.1256 0.01801 *
+Tifanimal               410344  410344     1   37.24  4.3657 0.04356 *
+Tpriming:Tsyl           111418  111418     1 2405.19  1.1854 0.27637
+Tpriming:Tifanimal        1368    1368     1 2405.20  0.0146 0.90399
+Tsyl:Tifanimal          126377  126377     1   37.14  1.3445 0.25364
+Tpriming:Tsyl:Tifanimal   6400    6400     1 2405.23  0.0681 0.79417
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+
+
+
+
+
+
+
+
+
+ifanimal = False; rest - all
+
+"rt ~ Tsyl * Tconsistency * Texp_type + (1 + Tsyl:Texp_type + Texp_type | sub) + (1 + Tsyl:Tconsistency:Texp_type + Tsyl | word)"
+
+
+Type III Analysis of Variance Table with Kenward-Roger's method
+                             Sum Sq Mean Sq NumDF   DenDF F value   Pr(>F)
+Tsyl                        1.12053 1.12053     1   21.84 11.5195 0.002627 **
+Tconsistency                0.02686 0.02686     1 1808.24  0.2761 0.599318
+Texp_type                   0.28648 0.28648     1   60.82  2.9452 0.091225 .
+Tsyl:Tconsistency           0.03050 0.03050     1 1808.13  0.3135 0.575603
+Tsyl:Texp_type              0.89345 0.89345     1 1812.01  9.1850 0.002475 **
+Tconsistency:Texp_type      0.17207 0.17207     1 1807.93  1.7690 0.183677
+Tsyl:Tconsistency:Texp_type 0.00708 0.00708     1 1808.32  0.0728 0.787385
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Found good model
+Main Effect ['Tsyl']
+R[write to console]: NOTE: Results may be misleading due to involvement in interactions
+
+ contrast             estimate     SE   df t.ratio p.value
+ (Tsyl-0.5) - Tsyl0.5   -0.161 0.0475 21.8  -3.394  0.0026
+
+Results are averaged over the levels of: Tconsistency, Texp_type
+Degrees-of-freedom method: kenward-roger
+
+Last formula is rt ~ Tsyl * Tconsistency * Texp_type + (1 + Texp_type | sub) + (1 | word)
+
+
+2-way Interaction ['Tsyl', 'Texp_type']
+R[write to console]: NOTE: Results may be misleading due to involvement in interactions
+
+Texp_type = -0.5:
+ contrast             estimate     SE   df t.ratio p.value
+ (Tsyl-0.5) - Tsyl0.5   -0.117 0.0495 25.7  -2.368  0.0257
+
+Texp_type =  0.5:
+ contrast             estimate     SE   df t.ratio p.value
+ (Tsyl-0.5) - Tsyl0.5   -0.205 0.0499 26.6  -4.116  0.0003
+
+Results are averaged over the levels of: Tconsistency
+Degrees-of-freedom method: kenward-roger
+
+R[write to console]: NOTE: Results may be misleading due to involvement in interactions
+
+Tsyl = -0.5:
+ contrast                       estimate     SE   df t.ratio p.value
+ (Texp_type-0.5) - Texp_type0.5  -0.0559 0.0598 67.5  -0.935  0.3532
+
+Tsyl =  0.5:
+ contrast                       estimate     SE   df t.ratio p.value
+ (Texp_type-0.5) - Texp_type0.5  -0.1440 0.0603 69.8  -2.389  0.0196
+
+Results are averaged over the levels of: Tconsistency
+Degrees-of-freedom method: kenward-roger
