@@ -1,3 +1,136 @@
+[[[[ ifanimal = False ]]]]
+
+Control:
+structure(list(optimizer = "bobyqa", restart_edge = TRUE, boundary.tol = 1e-05,
+    calc.derivs = TRUE, use.last.params = FALSE, checkControl = list(
+        check.nobs.vs.rankZ = "ignore", check.nobs.vs.nlev = "stop",
+        check.nlev.gtreq.5 = "ignore", check.nlev.gtr.1 = "stop",
+        check.nobs.vs.nRE = "stop", check.rankX = "message+drop.cols",
+        check.scaleX = "warning", check.formula.LHS = "stop"),
+    checkConv = list(check.conv.grad = list(action = "warning",
+        tol = 0.002, relTol = NULL), check.conv.singular = list(
+        action = "message", tol = 1e-04), check.conv.hess = list(
+        action = "warning", tol = 1e-06)), optCtrl = list()), class = c("lmerControl",
+"merControl"))
+
+REML criterion at convergence: 1459.4
+
+Scaled residuals:
+    Min      1Q  Median      3Q     Max
+-3.1132 -0.6741 -0.1180  0.5169  4.1417
+
+Random effects:
+ Groups   Name        Variance Std.Dev.
+ sub      (Intercept) 0.04199  0.2049
+ word     (Intercept) 0.01825  0.1351
+ Residual             0.08884  0.2981
+Number of obs: 2776, groups:  sub, 63; word, 24
+
+Fixed effects:
+                              Estimate Std. Error         df t value Pr(>|t|)
+(Intercept)                  1.309e+00  3.823e-02  5.787e+01  34.256   <2e-16
+Tsyl                         5.384e-02  5.633e-02  2.185e+01   0.956   0.3496
+Tconsistency                 2.267e-03  1.135e-02  2.685e+03   0.200   0.8417
+Texp_type                    1.003e-01  5.293e-02  6.085e+01   1.895   0.0628
+Tsyl:Tconsistency            1.774e-02  2.270e-02  2.685e+03   0.781   0.4348
+Tsyl:Texp_type               9.061e-03  2.272e-02  2.686e+03   0.399   0.6901
+Tconsistency:Texp_type      -1.999e-03  2.270e-02  2.685e+03  -0.088   0.9299
+Tsyl:Tconsistency:Texp_type  7.528e-02  4.542e-02  2.685e+03   1.658   0.0975
+
+(Intercept)                 ***
+Tsyl
+Tconsistency
+Texp_type                   .
+Tsyl:Tconsistency
+Tsyl:Texp_type
+Tconsistency:Texp_type
+Tsyl:Tconsistency:Texp_type .
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) Tsyl   Tcnsst Txp_ty Tsyl:T Tsy:T_ Tcn:T_
+Tsyl        -0.002
+Tconsistncy -0.001  0.001
+Texp_type    0.033  0.000 -0.003
+Tsyl:Tcnsst  0.001 -0.001 -0.041  0.003
+Tsyl:Txp_ty  0.000  0.009  0.015 -0.009 -0.014
+Tcnsstnc:T_ -0.002  0.003  0.047 -0.001 -0.001  0.003
+Tsyl:Tcn:T_  0.002 -0.003 -0.001  0.001  0.046 -0.005 -0.041
+
+Last formula is rt ~ Tsyl * Tconsistency * Texp_type + (1 | sub) + (1 | word)
+It is True
+
+
+
+Control:
+structure(list(optimizer = c("bobyqa", "bobyqa"), restart_edge = FALSE,
+    boundary.tol = 1e-05, calc.derivs = TRUE, use.last.params = FALSE,
+    checkControl = list(check.nobs.vs.rankZ = "ignore", check.nobs.vs.nlev = "stop",
+        check.nlev.gtreq.5 = "ignore", check.nlev.gtr.1 = "stop",
+        check.nobs.vs.nRE = "stop", check.rankX = "message+drop.cols",
+        check.scaleX = "warning", check.formula.LHS = "stop",
+        check.response.not.const = "stop"), checkConv = list(
+        check.conv.grad = list(action = "warning", tol = 0.002,
+            relTol = NULL), check.conv.singular = list(action = "message",
+            tol = 1e-04), check.conv.hess = list(action = "warning",
+            tol = 1e-06)), optCtrl = list(), tolPwrss = 1e-07,
+    compDev = TRUE, nAGQ0initStep = TRUE), class = c("glmerControl",
+"merControl"))
+
+     AIC      BIC   logLik deviance df.resid
+  1154.7   1238.6   -563.4   1126.7     2949
+
+Scaled residuals:
+     Min       1Q   Median       3Q      Max
+-12.6202   0.0779   0.1333   0.2355   1.5329
+
+Random effects:
+ Groups Name                        Variance Std.Dev. Corr
+ sub    (Intercept)                 0.6066   0.7789
+        Tconsistency:Texp_type:Tsyl 9.7847   3.1281   -0.42
+ word   (Intercept)                 1.9689   1.4032
+        Tsyl                        0.2071   0.4551   -0.38
+Number of obs: 2963, groups:  sub, 63; word, 24
+
+Fixed effects:
+                            Estimate Std. Error z value Pr(>|z|)
+(Intercept)                  3.86603    0.36318  10.645   <2e-16 ***
+Tconsistency                -0.04753    0.18683  -0.254   0.7992
+Tsyl                         1.21924    0.67597   1.804   0.0713 .
+Texp_type                    0.09272    0.27942   0.332   0.7400
+Tconsistency:Tsyl           -0.17766    0.43592  -0.408   0.6836
+Tconsistency:Texp_type       0.28310    0.37609   0.753   0.4516
+Tsyl:Texp_type              -0.17390    0.37440  -0.464   0.6423
+Tconsistency:Tsyl:Texp_type -1.63245    1.02728  -1.589   0.1120
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Correlation of Fixed Effects:
+            (Intr) Tcnsst Tsyl   Txp_ty Tcns:T Tcn:T_ Tsy:T_
+Tconsistncy -0.013
+Tsyl         0.039 -0.012
+Texp_type    0.021  0.000  0.002
+Tcnsstncy:T -0.023  0.358 -0.009 -0.202
+Tcnsstnc:T_ -0.002  0.070 -0.017 -0.034  0.009
+Tsyl:Txp_ty -0.002 -0.064  0.025  0.284 -0.001 -0.053
+Tcnsst:T:T_ -0.117  0.005 -0.001 -0.048  0.044  0.360 -0.039
+
+                                  Chisq   Df    Pr(>Chisq)
+(Intercept)                  113.312500  1.0  1.843117e-26
+Tconsistency                   0.064721  1.0  7.991846e-01
+Tsyl                           3.253332  1.0  7.127843e-02
+Texp_type                      0.110122  1.0  7.400057e-01
+Tconsistency:Tsyl              0.166094  1.0  6.836064e-01
+Tconsistency:Texp_type         0.566598  1.0  4.516140e-01
+Tsyl:Texp_type                 0.215742  1.0  6.423036e-01
+Tconsistency:Tsyl:Texp_type    2.525201  1.0  1.120405e-01
+Last formula is ifcorr ~ Tconsistency * Tsyl * Texp_type + (1 + Tconsistency:Texp_type:Tsyl | sub) + (1 + Tsyl | word)
+It is True
+
+
+
+
 [[[[ ifanimal = True ]]]]
 structure(list(optimizer = "bobyqa", restart_edge = TRUE, boundary.tol = 1e-05,
     calc.derivs = TRUE, use.last.params = FALSE, checkControl = list(
