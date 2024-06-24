@@ -139,7 +139,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 | sub) + (1 | word)"
+prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 + Texp_type | sub) + (1 | word)" # "rt ~ Tsyl * Tconsistency * Texp_type + (1 | sub) + (1 | word)"
 
 
 # ---------------------------------
@@ -253,7 +253,7 @@ anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
 # anova_model1 change format
 with (ro.default_converter + pandas2ri.converter).context():
     anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
-
+print(anova_model1)
 
 # model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
 # summary_model1_r = Matrix.summary(model1)

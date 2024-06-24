@@ -58,7 +58,7 @@ for sub in list(set(data["sub"])):
         data['consistency'] = (((data['priming'] == "priming") & (data['exp_type'] == "exp1")) | ((data['priming'] == "primingeq") & (data['exp_type'] == "exp2"))).astype(int)
 
 # data = data[data['exp_type'] == "exp1"]  # pick out one exp
-data = data[data['ifanimal'] == True]  # pick out one exp
+data = data[data['ifanimal'] == False]  # pick out one exp
 
 print("Data collected!")
 
