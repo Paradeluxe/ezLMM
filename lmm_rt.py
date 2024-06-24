@@ -259,13 +259,20 @@ print(anova_model1)
 # summary_model1_r = Matrix.summary(model1)
 # print(summary_model1_r)
 
+
+print("--------------- Generating reports here ---------------\n")
+print(f"For RT data, F test of the optimal model showed that ", end="")
+
 for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
     if "ntercept" in sig_items:
         continue
     sig_items = sig_items.split(":")
     item_num = len(sig_items)
     if item_num == 1:
-        print(f"Main Effect {sig_items}")
+        print(anova_model1[anova_model1["Pr(>F)"] <= 0.05].loc[sig_items[0]])
+        print(anova_model1[anova_model1["Pr(>F)"] <= 0.05].loc[sig_items[0]])
+
+        print(f"The main effect of {sig_items} was significant (F({1},{1}))")
         emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
         print(emmeans_result)
 
@@ -278,6 +285,9 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
 
     elif item_num >= 3:
         print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
+
+
+
 
 print(f"Last formula is {formula_str}\nIt is {isGoodModel}\n")
 print("-------------------------------------------------------")
