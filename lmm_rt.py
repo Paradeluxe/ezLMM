@@ -287,6 +287,18 @@ print(anova_model1)
 
 print("--------------- Generating reports here ---------------\n")
 
+rep_terms = {
+    "Tsyl-0.5": "disyllable",
+    "Tsyl0.5": "trisyllable",
+    "Tsyl": "syllable number",
+
+    "Texp_type-0.5": "stress-timing",
+    "Texp_type0.5": "syllable-timing",
+    "Texp_type": "isochrony"
+
+
+}
+
 final_rpt = f"For RT data, F test of the optimal model was conducted using anova function from stats package. "
 
 for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
@@ -311,7 +323,7 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
         emmeans_result_dict = extract_contrast(str(emmeans_result))
 
 
-        final_rpt += f"The main effect of {sig_items} was significant (F({df_item['NumDF']},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
+        final_rpt += f"The main effect of {sig_items[0]} was significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
         final_rpt += f"Post-hoc analysis revealed that "
         if float(emmeans_result_dict['p.value']) <= 0.05:
             final_rpt += f"RT for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} "\
@@ -333,14 +345,14 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
 
     elif item_num == 2:
         print(f"2-way Interaction {sig_items}")
-        final_rpt += f"The interaction between {' and '.join(sig_items)} was significant (F({df_item['NumDF']},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
+        final_rpt += f"The interaction between {' and '.join(sig_items)} was significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
         final_rpt += f"Simple effect analysis showed that, "
 
         for i1, i2 in [(0, 1), (-1, -2)]:
             emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[i1], by=sig_items[i2]), "pairwise", adjust="bonferroni")
             # print(emmeans_result)
             emmeans_result_dict = extract_contrast(str(emmeans_result), 1)
-            final_rpt += f" under the condition of {emmeans_result_dict['under_cond']}, "
+            final_rpt += f"under the condition of {emmeans_result_dict['under_cond']}, "
 
             if float(emmeans_result_dict['p.value']) <= 0.05:
                 final_rpt += f"RT for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} "\
@@ -369,7 +381,11 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
     elif item_num >= 3:
         print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
 
+for rep_term in rep_terms:
+    final_rpt = final_rpt.replace(rep_term, rep_terms[rep_term])
+print()
 print(final_rpt)
+
 
 
 print(f"Last formula is {formula_str}\nIt is {isGoodModel}\n")
