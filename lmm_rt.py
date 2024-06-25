@@ -292,9 +292,8 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
 
         print(f"The main effect of {sig_items} was significant (F({df_item['NumDF']},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}).")
         emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
-        print(emmeans_result)
-        print(tuple(emmeans_result.slotnames()))
-        print(emmeans_result.slots["misc"].slotnames())
+        print(str(emmeans_result).split("\n"))
+
         exit()
         for name in tuple(emmeans_result.slotnames()):
             print(name)
