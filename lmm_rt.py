@@ -320,7 +320,7 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
         final_rpt += f"Post-hoc analysis revealed that "
         if float(emmeans_result_dict['p.value']) <= 0.05:
             final_rpt += f"RT for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} "\
-                         f"was significantly {'higher' if float(emmeans_result_dict['estimate']) < 0 else 'lower'}"\
+                         f"was significantly {'higher' if float(emmeans_result_dict['estimate']) > 0 else 'lower'}"\
                          f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} ("\
                          f"β={emmeans_result_dict['estimate']}, "\
                          f"SE={emmeans_result_dict['SE']}, "\
@@ -349,7 +349,7 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
 
             if float(emmeans_result_dict['p.value']) <= 0.05:
                 final_rpt += f"RT for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} "\
-                             f"was significantly {'higher' if float(emmeans_result_dict['estimate']) < 0 else 'lower'}"\
+                             f"was significantly {'higher' if float(emmeans_result_dict['estimate']) > 0 else 'lower'}"\
                              f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} ("\
                              f"β={emmeans_result_dict['estimate']}, "\
                              f"SE={emmeans_result_dict['SE']}, "\
@@ -394,7 +394,6 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] > 0.05].index.tolist():
     """
     if item_num == 1:
         print(f"Main effect {sig_items}")
-
         final_rpt += f"The main effect of {sig_items[0]} was not significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
 
     elif item_num == 2:
