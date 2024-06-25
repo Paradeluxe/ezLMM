@@ -287,17 +287,7 @@ print(anova_model1)
 
 print("--------------- Generating reports here ---------------\n")
 
-rep_terms = {
-    "Tsyl-0.5": "disyllable",
-    "Tsyl0.5": "trisyllable",
-    "Tsyl": "syllable number",
 
-    "Texp_type-0.5": "stress-timing",
-    "Texp_type0.5": "syllable-timing",
-    "Texp_type": "isochrony"
-
-
-}
 
 final_rpt = f"For RT data, F test of the optimal model was conducted using anova function from stats package. "
 
@@ -381,8 +371,20 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
     elif item_num >= 3:
         print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
 
+
+rep_terms = {
+    "Tsyl-0.5": "disyllable",
+    "Tsyl0.5": "trisyllable",
+    "Tsyl": "syllable number",
+
+    "Texp_type-0.5": "stress-timing",
+    "Texp_type0.5": "syllable-timing",
+    "Texp_type": "isochrony"
+
+}
 for rep_term in rep_terms:
     final_rpt = final_rpt.replace(rep_term, rep_terms[rep_term])
+
 print()
 print(final_rpt)
 
