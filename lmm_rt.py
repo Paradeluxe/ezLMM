@@ -15,6 +15,14 @@ nlme = importr("nlme")
 lme4 = importr("lme4")
 
 pd.set_option("display.max_columns", None)
+
+
+def r2p(r_obj):
+    with (ro.default_converter + pandas2ri.converter).context():
+        return ro.conversion.get_conversion().rpy2py(r_obj)
+
+
+
 # ---------------------------------
 # ----------> For USERS >----------
 # ---------------------------------
@@ -139,7 +147,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 + Texp_type | sub) + (1 | word)" # "rt ~ Tsyl * Tconsistency * Texp_type + (1 | sub) + (1 | word)"
+prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 | sub) + (1 | word)" # "rt ~ Tsyl * Tconsistency * Texp_type + (1 | sub) + (1 | word)"
 
 
 # ---------------------------------
@@ -251,8 +259,8 @@ print(summary_model1_r)
 anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
 
 # anova_model1 change format
-with (ro.default_converter + pandas2ri.converter).context():
-    anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
+anova_model1 = r2p(anova_model1)
+
 print(anova_model1)
 
 # model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
@@ -261,26 +269,49 @@ print(anova_model1)
 
 
 print("--------------- Generating reports here ---------------\n")
-print(f"For RT data, F test of the optimal model showed that ", end="")
+print(f"For RT data, F test of the optimal model was conducted using anova function from stats package. ", end="")
 
 for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
     if "ntercept" in sig_items:
         continue
     sig_items = sig_items.split(":")
     item_num = len(sig_items)
+    df_item = anova_model1[anova_model1["Pr(>F)"] <= 0.05].loc[sig_items[0]]
+    """
+    Name: Tsyl, dtype: float64
+    Sum Sq      1.120534
+    Mean Sq     1.120534
+    NumDF       1.000000
+    DenDF      21.842760
+    F value    11.519495
+    Pr(>F)      0.002627
+    Name: Tsyl, dtype: float64
+    """
     if item_num == 1:
-        print(anova_model1[anova_model1["Pr(>F)"] <= 0.05].loc[sig_items[0]])
-        print(anova_model1[anova_model1["Pr(>F)"] <= 0.05].loc[sig_items[0]])
+        # print(anova_model1[anova_model1["Pr(>F)"] <= 0.05].loc[sig_items[0]])
 
-        print(f"The main effect of {sig_items} was significant (F({1},{1}))")
+        print(f"The main effect of {sig_items} was significant (F({df_item['NumDF']},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}).")
         emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
         print(emmeans_result)
-
+        print(tuple(emmeans_result.slotnames()))
+        print(emmeans_result.slots["misc"].slotnames())
+        exit()
+        for name in tuple(emmeans_result.slotnames()):
+            print(name)
+            print(emmeans_result.slots[name])
+        emmeans_result = r2p(emmeans_result)
+        for i in emmeans_result:
+            print(i)
+        print(emmeans_result)
+        print(f"Post-hoc analysis revealed that RT for trisyllabic word was significantly higher than that for disyllabic word")
     elif item_num == 2:
         print(f"2-way Interaction {sig_items}")
         emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[0], by=sig_items[1]), "pairwise", adjust="bonferroni")
+        emmeans_result = r2p(emmeans_result)
         print(emmeans_result)
+
         emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[1], by=sig_items[0]), "pairwise", adjust="bonferroni")
+        emmeans_result = r2p(emmeans_result)
         print(emmeans_result)
 
     elif item_num >= 3:
