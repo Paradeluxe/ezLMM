@@ -284,9 +284,11 @@ print(anova_model1)
 # summary_model1_r = Matrix.summary(model1)
 # print(summary_model1_r)
 
-
-print("--------------- Generating reports here ---------------\n")
-
+print()
+print()
+print("--------------- Looking for main effect(s)/interaction(s) ---------------\n")
+print()
+print()
 
 
 final_rpt = f"For RT data, F test of the optimal model was conducted using anova function from stats package. "
@@ -294,9 +296,10 @@ final_rpt = f"For RT data, F test of the optimal model was conducted using anova
 for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
     if "ntercept" in sig_items:
         continue
+    df_item = anova_model1[anova_model1["Pr(>F)"] <= 0.05].loc[sig_items]
+
     sig_items = sig_items.split(":")
     item_num = len(sig_items)
-    df_item = anova_model1[anova_model1["Pr(>F)"] <= 0.05].loc[sig_items[0]]
     """
     Name: Tsyl, dtype: float64
     Sum Sq      1.120534
@@ -369,14 +372,16 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
 
 
     elif item_num >= 3:
+        final_rpt += "[Write here for 3-way analysis]"
         print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
 
 for sig_items in anova_model1[anova_model1["Pr(>F)"] > 0.05].index.tolist():
     if "ntercept" in sig_items:
         continue
+    df_item = anova_model1[anova_model1["Pr(>F)"] > 0.05].loc[sig_items]
+
     sig_items = sig_items.split(":")
     item_num = len(sig_items)
-    df_item = anova_model1[anova_model1["Pr(>F)"] > 0.05].loc[sig_items[0]]
     """
     Name: Tsyl, dtype: float64
     Sum Sq      1.120534
@@ -389,8 +394,6 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] > 0.05].index.tolist():
     """
     if item_num == 1:
         print(f"Main effect {sig_items}")
-        emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
-        emmeans_result_dict = extract_contrast(str(emmeans_result))
 
         final_rpt += f"The main effect of {sig_items[0]} was not significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
 
@@ -400,6 +403,8 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] > 0.05].index.tolist():
 
     elif item_num >= 3:
         print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
+        final_rpt += f"The interaction between {sig_items[0]}, {' and '.join(sig_items[1:])} was not significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
+
 
 
 rep_terms = {
@@ -409,18 +414,29 @@ rep_terms = {
 
     "Texp_type-0.5": "stress-timing",
     "Texp_type0.5": "syllable-timing",
-    "Texp_type": "isochrony"
+    "Texp_type": "isochrony",
+
+    "Tconsistency": "priming effect",
+    "Tconsistency-0.5": "consistency",
+    "Tconsistency0.5": "inconsistency"
 
 }
 for rep_term in rep_terms:
     final_rpt = final_rpt.replace(rep_term, rep_terms[rep_term])
 
-print(final_rpt)
 print()
-print()
-
-
 print(f"Last formula is {formula_str}\nIt is {isGoodModel}\n")
+print()
+print()
+print("--------------- Generating reports here ---------------\n")
+
+
+print(final_rpt)
+
+print()
+print()
+
+
 print("-------------------------------------------------------")
 print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")
 print("-------------------------------------------------------")
