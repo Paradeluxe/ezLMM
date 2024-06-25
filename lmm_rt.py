@@ -330,7 +330,7 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
         final_rpt += f"Simple effect analysis showed that"
 
         emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[0], by=sig_items[1]), "pairwise", adjust="bonferroni")
-        emmeans_result_11 = r2p(emmeans_result)
+        emmeans_result_11 = extract_contrast(str(emmeans_result))
 
         if float(emmeans_result_11['p.value']) <= 0.05:
             final_rpt += f"RT for {emmeans_result_11['contrast'].split(' - ')[0].strip().strip('()')} "\
@@ -351,7 +351,7 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
                          f"p={float(emmeans_result_11['p.value']):.3f}). "
 
         emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[1], by=sig_items[0]), "pairwise", adjust="bonferroni")
-        emmeans_result_12 = r2p(emmeans_result)
+        emmeans_result_12 = extract_contrast(str(emmeans_result))
 
         if float(emmeans_result_12['p.value']) <= 0.05:
             final_rpt += f"RT for {emmeans_result_12['contrast'].split(' - ')[0].strip().strip('()')} "\
