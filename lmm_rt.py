@@ -371,6 +371,36 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
     elif item_num >= 3:
         print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
 
+for sig_items in anova_model1[anova_model1["Pr(>F)"] > 0.05].index.tolist():
+    if "ntercept" in sig_items:
+        continue
+    sig_items = sig_items.split(":")
+    item_num = len(sig_items)
+    df_item = anova_model1[anova_model1["Pr(>F)"] > 0.05].loc[sig_items[0]]
+    """
+    Name: Tsyl, dtype: float64
+    Sum Sq      1.120534
+    Mean Sq     1.120534
+    NumDF       1.000000
+    DenDF      21.842760
+    F value    11.519495
+    Pr(>F)      0.002627
+    Name: Tsyl, dtype: float64
+    """
+    if item_num == 1:
+        print(f"Main effect {sig_items}")
+        emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
+        emmeans_result_dict = extract_contrast(str(emmeans_result))
+
+        final_rpt += f"The main effect of {sig_items[0]} was not significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
+
+    elif item_num == 2:
+        print(f"2-way Interaction {sig_items}")
+        final_rpt += f"The interaction between {' and '.join(sig_items)} was not significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
+
+    elif item_num >= 3:
+        print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
+
 
 rep_terms = {
     "Tsyl-0.5": "disyllable",
@@ -385,9 +415,9 @@ rep_terms = {
 for rep_term in rep_terms:
     final_rpt = final_rpt.replace(rep_term, rep_terms[rep_term])
 
-print()
 print(final_rpt)
-
+print()
+print()
 
 
 print(f"Last formula is {formula_str}\nIt is {isGoodModel}\n")
