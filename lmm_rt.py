@@ -22,11 +22,19 @@ def r2p(r_obj):
         return ro.conversion.get_conversion().rpy2py(r_obj)
 
 
-def extract_contrast(contrast_str):
-    contrast_dict = dict(zip(
-        contrast_str.split("\n")[0][1:].split(),
-        contrast_str.split("\n")[1].rsplit(maxsplit=5)
-    ))
+def extract_contrast(contrast_str, interaction=0):
+    raw_contrast = contrast_str.split("\n")
+    if interaction == 0:
+        contrast_dict = dict(zip(
+            raw_contrast[0][1:].split(),
+            raw_contrast[1].strip().rsplit(maxsplit=5)
+        ))
+    elif interaction == 1:
+        contrast_dict = dict(zip(
+            raw_contrast[1][1:].split(),
+            raw_contrast[2].strip().rsplit(maxsplit=5)
+        ))
+        contrast_dict["under_cond"] = raw_contrast[0].strip(":").replace(" = ", "")
     # print(contrast_dict)
     # {'contrast': '     (Tsyl-0.5) - Tsyl0.5', 'estimate': '-0.161', 'SE': '0.0475', 'df': '21.8', 't.ratio': '-3.394', 'p.value': '0.0026'}
     return contrast_dict
@@ -330,7 +338,8 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
         final_rpt += f"Simple effect analysis showed that"
 
         emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[0], by=sig_items[1]), "pairwise", adjust="bonferroni")
-        emmeans_result_11 = extract_contrast(str(emmeans_result))
+        print(emmeans_result)
+        emmeans_result_11 = extract_contrast(str(emmeans_result), 1)
 
         if float(emmeans_result_11['p.value']) <= 0.05:
             final_rpt += f"RT for {emmeans_result_11['contrast'].split(' - ')[0].strip().strip('()')} "\
@@ -351,7 +360,7 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
                          f"p={float(emmeans_result_11['p.value']):.3f}). "
 
         emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[1], by=sig_items[0]), "pairwise", adjust="bonferroni")
-        emmeans_result_12 = extract_contrast(str(emmeans_result))
+        emmeans_result_12 = extract_contrast(str(emmeans_result), 1)
 
         if float(emmeans_result_12['p.value']) <= 0.05:
             final_rpt += f"RT for {emmeans_result_12['contrast'].split(' - ')[0].strip().strip('()')} "\
