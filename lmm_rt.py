@@ -22,6 +22,15 @@ def r2p(r_obj):
         return ro.conversion.get_conversion().rpy2py(r_obj)
 
 
+def extract_contrast(contrast_str):
+    contrast_dict = dict(zip(
+        contrast_str.split("\n")[0][1:].split(),
+        contrast_str.split("\n")[1].rsplit(maxsplit=5)
+    ))
+    # print(contrast_dict)
+    # {'contrast': '     (Tsyl-0.5) - Tsyl0.5', 'estimate': '-0.161', 'SE': '0.0475', 'df': '21.8', 't.ratio': '-3.394', 'p.value': '0.0026'}
+    return contrast_dict
+
 
 # ---------------------------------
 # ----------> For USERS >----------
@@ -91,7 +100,7 @@ data = df1.copy()
 
 data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
 
-# data['rt_diff'] = data['rt_diff'] * 1000  # if rt is in ms, * 1000 might be better
+data['rt'] = data['rt'] * 1000  # if rt is in ms, * 1000 might be better
 # data = data[data['exp_type'] == "exp1"]  # pick out one exp
 data = data[data['ifanimal'] == True]  # pick out one exp
 
@@ -290,19 +299,20 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
     if item_num == 1:
         # print(anova_model1[anova_model1["Pr(>F)"] <= 0.05].loc[sig_items[0]])
 
-        print(f"The main effect of {sig_items} was significant (F({df_item['NumDF']},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}).")
-        emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
-        print(str(emmeans_result).split("\n"))
 
-        exit()
-        for name in tuple(emmeans_result.slotnames()):
-            print(name)
-            print(emmeans_result.slots[name])
-        emmeans_result = r2p(emmeans_result)
-        for i in emmeans_result:
-            print(i)
-        print(emmeans_result)
-        print(f"Post-hoc analysis revealed that RT for trisyllabic word was significantly higher than that for disyllabic word")
+        emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
+        emmeans_result_dict = extract_contrast(str(emmeans_result))
+        print(f"The main effect of {sig_items} was significant (F({df_item['NumDF']},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}).")
+        print(f"Post-hoc analysis revealed that RT for ", end="")
+        print(f"{emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} "
+              f"was significantly {'higher' if float(emmeans_result_dict['estimate']) < 0 else 'lower'}"
+              f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} ("
+              f"β={emmeans_result_dict['estimate']}, "
+              f"SE={emmeans_result_dict['SE']}, "
+              f"df={emmeans_result_dict['df']}, "
+              f"t={emmeans_result_dict['t.ratio']}, "
+              f"p={float(emmeans_result_dict['p.value']):.3f}).", end="")
+
     elif item_num == 2:
         print(f"2-way Interaction {sig_items}")
         emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[0], by=sig_items[1]), "pairwise", adjust="bonferroni")
