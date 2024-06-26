@@ -110,7 +110,7 @@ data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
 
 data['rt'] = data['rt'] * 1000  # if rt is in ms, * 1000 might be better
 # data = data[data['exp_type'] == "exp1"]  # pick out one exp
-data = data[data['ifanimal'] == True]  # pick out one exp
+data = data[data['ifanimal'] == False]  # pick out one exp
 
 print("Data collected!")
 # ---------------------------------
@@ -271,13 +271,10 @@ while True:
     # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
     # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
 
-
 print(summary_model1_r)
+
 anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
-
-# anova_model1 change format
 anova_model1 = r2p(anova_model1)
-
 print(anova_model1)
 
 # model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
@@ -291,7 +288,19 @@ print()
 print()
 
 
-final_rpt = f"For RT data, F test of the optimal model was conducted using anova function from stats package. "
+final_rpt = f"For RT data, F test was conducted on the optimal model ({formula_str}). "
+
+rep_terms = {
+    "rt": "RT",
+    "sub": "subject",
+    "word": "item",
+    "Tsyl": "syllable_number",
+    "Texp_type": "isochrony",
+    "Tconsistency": "priming_effect"
+}
+for rep_term in rep_terms:
+    final_rpt = final_rpt.replace(rep_term, rep_terms[rep_term])
+
 
 for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
     if "ntercept" in sig_items:
@@ -314,7 +323,6 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
         print(f"Main effect {sig_items}")
         emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
         emmeans_result_dict = extract_contrast(str(emmeans_result))
-
 
         final_rpt += f"The main effect of {sig_items[0]} was significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
         final_rpt += f"Post-hoc analysis revealed that "
@@ -417,7 +425,9 @@ rep_terms = {
 
     "Tconsistency": "priming effect",
     "Tconsistency-0.5": "consistency",
-    "Tconsistency0.5": "inconsistency"
+    "Tconsistency0.5": "inconsistency",
+
+    "=0.000": "<0.001"
 
 }
 for rep_term in rep_terms:

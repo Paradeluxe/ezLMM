@@ -13,6 +13,27 @@ Matrix = importr("Matrix")
 lme4 = importr("lme4")
 nlme = importr("nlme")
 
+def r2p(r_obj):
+    with (ro.default_converter + pandas2ri.converter).context():
+        return ro.conversion.get_conversion().rpy2py(r_obj)
+
+def extract_contrast(contrast_str, interaction=0):
+    raw_contrast = contrast_str.split("\n")
+
+    if interaction == 0:
+        contrast_dict = dict(zip(
+            raw_contrast[0][1:].split(),
+            raw_contrast[1].strip().rsplit(maxsplit=5)
+        ))
+    elif interaction == 1:
+        contrast_dict = dict(zip(
+            raw_contrast[1][1:].split(),
+            raw_contrast[2].strip().rsplit(maxsplit=5)
+        ))
+        contrast_dict["under_cond"] = raw_contrast[0].strip(":").replace(" = ", "")
+    # print(contrast_dict)
+    # {'contrast': '     (Tsyl-0.5) - Tsyl0.5', 'estimate': '-0.161', 'SE': '0.0475', 'df': '21.8', 't.ratio': '-3.394', 'p.value': '0.0026'}
+    return contrast_dict
 
 # ---------------------------------
 # ----------> For USERS >----------
@@ -31,8 +52,6 @@ print("Reading Data——>>>", end="")
 # ---------------------------------
 # Note: If you do not want to select subset,
 # delete the line(s) you do not need, or press ctrl+/ annotating the line(s).
-
-
 
 # Preserve data only within 2.5 * SD
 new_data = pd.DataFrame()
@@ -58,7 +77,7 @@ for sub in list(set(data["sub"])):
         data['consistency'] = (((data['priming'] == "priming") & (data['exp_type'] == "exp1")) | ((data['priming'] == "primingeq") & (data['exp_type'] == "exp2"))).astype(int)
 
 # data = data[data['exp_type'] == "exp1"]  # pick out one exp
-data = data[data['ifanimal'] == False]  # pick out one exp
+data = data[data['ifanimal'] == True]  # pick out one exp
 
 print("Data collected!")
 
@@ -111,7 +130,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = ""
+prev_formula = "ifcorr ~ Tconsistency * Tsyl * Texp_type + (1 + Texp_type:Tsyl | sub) + (1 | word)"
 
 
 # ---------------------------------
@@ -147,8 +166,7 @@ while True:
     # 使用lmer函数拟合模型
     model1 = lme4.glmer(formula, family="binomial", data=r_data, control=lme4.glmerControl("bobyqa"))
     summary_model1_r = Matrix.summary(model1)
-    with localconverter(ro.default_converter + pandas2ri.converter + numpy2ri.converter):
-        summary_model1 = ro.conversion.get_conversion().rpy2py(summary_model1_r)
+    summary_model1 = r2p(summary_model1_r)
 
     try:
         isWarning = eval(str(summary_model1["optinfo"]["conv"]['lme4']["messages"]).strip("o"))
@@ -219,34 +237,161 @@ while True:
 
 
 print(summary_model1_r)
+
 anova_model1 = car.Anova(model1, type=3, test="Chisq")
-
-with (ro.default_converter + pandas2ri.converter).context():
-    anova_model1 = ro.conversion.get_conversion().rpy2py(anova_model1)
-
+anova_model1 = r2p(anova_model1)
 print(anova_model1)
+
+print()
+print()
+print("--------------- Looking for main effect(s)/interaction(s) ---------------\n")
+print()
+print()
+
+
+final_rpt = f"For ACC data, Wald chi-square test was conducted on the optimal model ({formula_str}). "
+
+rep_terms = {
+    "ifcorr": "ACC",
+    "sub": "subject",
+    "word": "item",
+    "Tsyl": "syllable_number",
+    "Texp_type": "isochrony",
+    "Tconsistency": "priming_effect"
+}
+for rep_term in rep_terms:
+    final_rpt = final_rpt.replace(rep_term, rep_terms[rep_term])
+
 
 for sig_items in anova_model1[anova_model1["Pr(>Chisq)"] <= 0.05].index.tolist():
     if "ntercept" in sig_items:
         continue
+    df_item = anova_model1[anova_model1["Pr(>Chisq)"] <= 0.05].loc[sig_items]
+    # print(df_item)
     sig_items = sig_items.split(":")
     item_num = len(sig_items)
+
+    """
+    Chisq         3.938184
+    Df            1.000000
+    Pr(>Chisq)    0.047202
+    Name: Tsyl, dtype: float64
+    """
     if item_num == 1:
         print(f"Main Effect {sig_items}")
         emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
+        emmeans_result_dict = extract_contrast(str(emmeans_result))
         print(emmeans_result)
+        final_rpt += f"The main effect of {sig_items[0]} was significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, p={df_item['Pr(>Chisq)']:.3f}). "
+        final_rpt += f"Post-hoc analysis revealed that "
+        print(emmeans_result_dict)
+        if float(emmeans_result_dict['p.value']) <= 0.05:
+            final_rpt += f"ACC for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} "\
+                         f"was significantly {'higher' if float(emmeans_result_dict['estimate']) > 0 else 'lower'}"\
+                         f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} ("\
+                         f"β={emmeans_result_dict['estimate']}, "\
+                         f"SE={emmeans_result_dict['SE']}, "\
+                         f"z={emmeans_result_dict['z.ratio']}, "\
+                         f"p={float(emmeans_result_dict['p.value']):.3f}). "
+        else:
+            final_rpt += f"there was no significant difference between {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')}"\
+                         f" and {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} in ACC ("\
+                         f"β={emmeans_result_dict['estimate']}, "\
+                         f"SE={emmeans_result_dict['SE']}, "\
+                         f"z={emmeans_result_dict['z.ratio']}, "\
+                         f"p={float(emmeans_result_dict['p.value']):.3f}). "
 
     elif item_num == 2:
         print(f"2-way Interaction {sig_items}")
-        emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[0], by=sig_items[1]), "pairwise", adjust="bonferroni")
-        print(emmeans_result)
-        emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[1], by=sig_items[0]), "pairwise", adjust="bonferroni")
-        print(emmeans_result)
+        final_rpt += f"The interaction between {' and '.join(sig_items)} was significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, p={df_item['Pr(>Chisq)']:.3f}). "
+        final_rpt += f"Simple effect analysis showed that, "
+
+        for i1, i2 in [(0, 1), (-1, -2)]:
+            emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[i1], by=sig_items[i2]), "pairwise", adjust="bonferroni")
+            # print(emmeans_result)
+            emmeans_result_dict = extract_contrast(str(emmeans_result), 1)
+            final_rpt += f"under the condition of {emmeans_result_dict['under_cond']}, "
+
+            if float(emmeans_result_dict['p.value']) <= 0.05:
+                final_rpt += f"ACC for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} "\
+                             f"was significantly {'higher' if float(emmeans_result_dict['estimate']) > 0 else 'lower'}"\
+                             f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} ("\
+                             f"β={emmeans_result_dict['estimate']}, "\
+                             f"SE={emmeans_result_dict['SE']}, "\
+                             f"z={emmeans_result_dict['z.ratio']}, "\
+                             f"p={float(emmeans_result_dict['p.value']):.3f})"
+            else:
+                final_rpt += f"no significant difference was found between {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')}"\
+                             f" and {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} in ACC ("\
+                             f"β={emmeans_result_dict['estimate']}, "\
+                             f"SE={emmeans_result_dict['SE']}, "\
+                             f"z={emmeans_result_dict['z.ratio']}, "\
+                             f"p={float(emmeans_result_dict['p.value']):.3f})"
+            if i1 == 0:
+                final_rpt += "; "
+            elif i1 == -1:
+                final_rpt += ". "
+
+    elif item_num >= 3:
+        final_rpt += "[Write here for 3-way analysis]"
+        print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
+
+
+
+for sig_items in anova_model1[anova_model1["Pr(>Chisq)"] > 0.05].index.tolist():
+    if "ntercept" in sig_items:
+        continue
+    df_item = anova_model1[anova_model1["Pr(>Chisq)"] > 0.05].loc[sig_items]
+
+    sig_items = sig_items.split(":")
+    item_num = len(sig_items)
+
+    if item_num == 1:
+        print(f"Main effect {sig_items}")
+        final_rpt += f"The main effect of {sig_items[0]} was not significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, p={df_item['Pr(>Chisq)']:.3f}). "
+
+    elif item_num == 2:
+        print(f"2-way Interaction {sig_items}")
+        final_rpt += f"The interaction between {' and '.join(sig_items)} was not significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, p={df_item['Pr(>Chisq)']:.3f}). "
 
     elif item_num >= 3:
         print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
+        final_rpt += f"The interaction between {sig_items[0]}, {' and '.join(sig_items[1:])} was not significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, p={df_item['Pr(>Chisq)']:.3f}). "
 
+
+
+
+rep_terms = {
+    "Tsyl-0.5": "disyllable",
+    "Tsyl0.5": "trisyllable",
+    "Tsyl": "syllable number",
+
+    "Texp_type-0.5": "stress-timing",
+    "Texp_type0.5": "syllable-timing",
+    "Texp_type": "isochrony",
+
+    "Tconsistency": "priming effect",
+    "Tconsistency-0.5": "consistency",
+    "Tconsistency0.5": "inconsistency",
+
+    "=0.000": "<0.001"
+
+}
+for rep_term in rep_terms:
+    final_rpt = final_rpt.replace(rep_term, rep_terms[rep_term])
+print()
 print(f"Last formula is {formula_str}\nIt is {isGoodModel}\n")
+print()
+print()
+print("--------------- Generating reports here ---------------\n")
+
+
+print(final_rpt)
+
+print()
+print()
+
+
 print("-------------------------------------------------------")
 print("SCRIPT End √ | Ignore \"R[write to console]\" down below, as it is an automatic callback")
 print("-------------------------------------------------------")
