@@ -110,7 +110,7 @@ data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
 
 data['rt'] = data['rt'] * 1000  # if rt is in ms, * 1000 might be better
 # data = data[data['exp_type'] == "exp1"]  # pick out one exp
-data = data[data['ifanimal'] == False]  # pick out one exp
+data = data[data['ifanimal'] == True]  # pick out one exp
 
 print("Data collected!")
 # ---------------------------------
