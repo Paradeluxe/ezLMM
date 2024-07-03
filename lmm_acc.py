@@ -19,6 +19,7 @@ def r2p(r_obj):
 
 def extract_contrast(contrast_str, interaction=0):
     raw_contrast = contrast_str.split("\n")
+    print(111111111)
     if interaction == 0:
         contrast_dict = dict(zip(
             raw_contrast[0][1:].split(),
@@ -31,15 +32,16 @@ def extract_contrast(contrast_str, interaction=0):
             raw_contrast[1][1:].split(),
             raw_contrast[2].strip().rsplit(maxsplit=5)
         ))
-        contrast_dict["under_cond"] = raw_contrast[0].strip(":").replace(" = ", "")
+        contrast_dict["under_cond"] = raw_contrast[0].strip(":").replace("=", "").replace(" ", "")
 
         contrast_dict1 = dict(zip(
             raw_contrast[5][1:].split(),
             raw_contrast[6].strip().rsplit(maxsplit=5)
         ))
-        contrast_dict1["under_cond"] = raw_contrast[4].strip(":").replace(" = ", "")
+        contrast_dict1["under_cond"] = raw_contrast[4].strip(":").replace("=", "").replace(" ", "")
+        print(raw_contrast[4])
         return contrast_dict, contrast_dict1
-    return None
+
 
 # ---------------------------------
 # ----------> For USERS >----------
@@ -326,7 +328,7 @@ for sig_items in anova_model1[anova_model1["Pr(>Chisq)"] <= 0.05].index.tolist()
 
         for i1, i2 in [(0, 1), (-1, -2)]:
             emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[i1], by=sig_items[i2]), "pairwise", adjust="bonferroni")
-            # print(emmeans_result)
+
             for emmeans_result_dict in extract_contrast(str(emmeans_result), 1):
 
                 final_rpt += f"under the condition of {emmeans_result_dict['under_cond']}, "
@@ -349,7 +351,7 @@ for sig_items in anova_model1[anova_model1["Pr(>Chisq)"] <= 0.05].index.tolist()
 
                 final_rpt += "; "
 
-        final_rpt = final_rpt[:2] +  ". "
+        final_rpt = final_rpt[:-2] + ". "
 
     elif item_num >= 3:
         final_rpt += "[Write here for 3-way analysis]"

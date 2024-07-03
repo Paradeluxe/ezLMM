@@ -36,13 +36,13 @@ def extract_contrast(contrast_str, interaction=0):
             raw_contrast[1][1:].split(),
             raw_contrast[2].strip().rsplit(maxsplit=5)
         ))
-        contrast_dict["under_cond"] = raw_contrast[0].strip(":").replace(" = ", "")
+        contrast_dict["under_cond"] = raw_contrast[0].strip(":").replace("=", "").replace(" ", "")
 
         contrast_dict1 = dict(zip(
             raw_contrast[5][1:].split(),
             raw_contrast[6].strip().rsplit(maxsplit=5)
         ))
-        contrast_dict1["under_cond"] = raw_contrast[4].strip(":").replace(" = ", "")
+        contrast_dict1["under_cond"] = raw_contrast[4].strip(":").replace("=", "").replace(" ", "")
         return contrast_dict, contrast_dict1
     return None
 
@@ -380,7 +380,7 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
                                  f"p={float(emmeans_result_dict['p.value']):.3f})"
                 final_rpt += "; "
 
-        final_rpt = final_rpt[:2] + ". "
+        final_rpt = final_rpt[:-2] + ". "
 
 
 
