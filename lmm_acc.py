@@ -53,6 +53,8 @@ print("Reading Data——>>>", end="")
 # Note: If you do not want to select subset,
 # delete the line(s) you do not need, or press ctrl+/ annotating the line(s).
 
+
+
 # Preserve data only within 2.5 * SD
 new_data = pd.DataFrame()
 for sub in list(set(data["sub"])):
@@ -66,7 +68,6 @@ for sub in list(set(data["sub"])):
     filtered_sub_data = sub_data[(sub_data['rt'] > (mean_rt - 2.5 * std_rt)) &
                                  (sub_data['rt'] < (mean_rt + 2.5 * std_rt))]
     # 将筛选后的数据追加到new_data中
-
     new_data = pd.concat([new_data, filtered_sub_data], ignore_index=True)
 
 data = new_data.copy()
@@ -77,7 +78,18 @@ for sub in list(set(data["sub"])):
         data['consistency'] = (((data['priming'] == "priming") & (data['exp_type'] == "exp1")) | ((data['priming'] == "primingeq") & (data['exp_type'] == "exp2"))).astype(int)
 
 # data = data[data['exp_type'] == "exp1"]  # pick out one exp
-data = data[data['ifanimal'] == True]  # pick out one exp
+
+
+data = data[data['ifanimal'] == True]
+
+# print(len(data[data["exp_type"] == "exp1"]["sub"].unique()), len(data[data["exp_type"] == "exp2"]["sub"].unique()))
+# for sub in data["sub"].unique():
+#     sub_data = data[data["sub"] == sub]
+#     if len(sub_data[sub_data["ifcorr"] == 1])/len(sub_data) <= 0.5:
+#         print(sub, sub_data["exp_type"].unique())
+#         print(len(sub_data[sub_data["ifcorr"] == 1])/len(sub_data))
+#         print()
+
 
 print("Data collected!")
 
