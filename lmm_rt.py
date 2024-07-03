@@ -29,15 +29,22 @@ def extract_contrast(contrast_str, interaction=0):
             raw_contrast[0][1:].split(),
             raw_contrast[1].strip().rsplit(maxsplit=5)
         ))
+        return contrast_dict
+
     elif interaction == 1:
         contrast_dict = dict(zip(
             raw_contrast[1][1:].split(),
             raw_contrast[2].strip().rsplit(maxsplit=5)
         ))
         contrast_dict["under_cond"] = raw_contrast[0].strip(":").replace(" = ", "")
-    # print(contrast_dict)
-    # {'contrast': '     (Tsyl-0.5) - Tsyl0.5', 'estimate': '-0.161', 'SE': '0.0475', 'df': '21.8', 't.ratio': '-3.394', 'p.value': '0.0026'}
-    return contrast_dict
+
+        contrast_dict1 = dict(zip(
+            raw_contrast[5][1:].split(),
+            raw_contrast[6].strip().rsplit(maxsplit=5)
+        ))
+        contrast_dict1["under_cond"] = raw_contrast[4].strip(":").replace(" = ", "")
+        return contrast_dict, contrast_dict1
+    return None
 
 
 # ---------------------------------
@@ -348,34 +355,32 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
         print(f"2-way Interaction {sig_items}")
         final_rpt += f"The interaction between {' and '.join(sig_items)} was significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
         final_rpt += f"Simple effect analysis showed that, "
-
         for i1, i2 in [(0, 1), (-1, -2)]:
             emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[i1], by=sig_items[i2]), "pairwise", adjust="bonferroni")
-            # print(emmeans_result)
-            emmeans_result_dict = extract_contrast(str(emmeans_result), 1)
-            final_rpt += f"under the condition of {emmeans_result_dict['under_cond']}, "
+            for emmeans_result_dict in extract_contrast(str(emmeans_result), 1):
 
-            if float(emmeans_result_dict['p.value']) <= 0.05:
-                final_rpt += f"RT for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} "\
-                             f"was significantly {'higher' if float(emmeans_result_dict['estimate']) > 0 else 'lower'}"\
-                             f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} ("\
-                             f"β={emmeans_result_dict['estimate']}, "\
-                             f"SE={emmeans_result_dict['SE']}, "\
-                             f"df={emmeans_result_dict['df']}, "\
-                             f"t={emmeans_result_dict['t.ratio']}, "\
-                             f"p={float(emmeans_result_dict['p.value']):.3f})"
-            else:
-                final_rpt += f"no significant difference was found between {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')}"\
-                             f" and {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} in RT ("\
-                             f"β={emmeans_result_dict['estimate']}, "\
-                             f"SE={emmeans_result_dict['SE']}, "\
-                             f"df={emmeans_result_dict['df']}, "\
-                             f"t={emmeans_result_dict['t.ratio']}, "\
-                             f"p={float(emmeans_result_dict['p.value']):.3f})"
-            if i1 == 0:
+                final_rpt += f"under the condition of {emmeans_result_dict['under_cond']}, "
+
+                if float(emmeans_result_dict['p.value']) <= 0.05:
+                    final_rpt += f"RT for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} "\
+                                 f"was significantly {'higher' if float(emmeans_result_dict['estimate']) > 0 else 'lower'}"\
+                                 f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} ("\
+                                 f"β={emmeans_result_dict['estimate']}, "\
+                                 f"SE={emmeans_result_dict['SE']}, "\
+                                 f"df={emmeans_result_dict['df']}, "\
+                                 f"t={emmeans_result_dict['t.ratio']}, "\
+                                 f"p={float(emmeans_result_dict['p.value']):.3f})"
+                else:
+                    final_rpt += f"no significant difference was found between {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')}"\
+                                 f" and {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} in RT ("\
+                                 f"β={emmeans_result_dict['estimate']}, "\
+                                 f"SE={emmeans_result_dict['SE']}, "\
+                                 f"df={emmeans_result_dict['df']}, "\
+                                 f"t={emmeans_result_dict['t.ratio']}, "\
+                                 f"p={float(emmeans_result_dict['p.value']):.3f})"
                 final_rpt += "; "
-            elif i1 == -1:
-                final_rpt += ". "
+
+        final_rpt = final_rpt[:2] + ". "
 
 
 
