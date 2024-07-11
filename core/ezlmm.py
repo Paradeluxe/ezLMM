@@ -29,8 +29,7 @@ def p2r(p_obj):
 
 def extract_contrast(contrast_str, factor_num=1):
 
-    raw_contrast = contrast_str.split("\n")
-    print(raw_contrast)
+    raw_contrast = contrast_str.strip().split("\n")
     contrast_dicts = []
 
     s = 0
@@ -44,8 +43,6 @@ def extract_contrast(contrast_str, factor_num=1):
             raw_contrast_ = raw_contrast[s+1:i]
 
         for j in range(0, len(raw_contrast_), 2):
-            print(j)
-            print(raw_contrast_)
             contrast_dict |= dict(zip(
                 raw_contrast_[j].strip().split(),
                 raw_contrast_[j + 1].strip().rsplit(maxsplit=len(raw_contrast_[j].strip().split()) - 1)
@@ -65,6 +62,7 @@ class LinearMixedModel:
         self.path = None
         self.report = None
         self.formula = None
+        self.code_dict = None
 
         # Data exclusion
         self.isExcludeSD = True
@@ -75,14 +73,22 @@ class LinearMixedModel:
         self.random_var = []
 
         # Generate report
-        self.translation = {}
+        self.trans_dict = {}
 
     def read_data(self, path):
-        print("Reading Data...")
+        """
+        Read data from the data path
+        :param path: data file path
+        :return: None
+        """
+
+
+        print("Reading Data...", end="")
         # Read .csv self.data (it can accept formats like .xlsx, just change pd.read_XXX)
         self.data = pd.read_csv(path, encoding="utf-8")
         print("Data collected!")
 
+        return None
 
     def code_variables(self, code):
         """
@@ -90,10 +96,20 @@ class LinearMixedModel:
         :param code: your coding dict
         :return: None
         """
+
+        print("Coding variables...", end="")
+
+        self.code_dict = code
         for var_name in code:
             # print(var_name, code[var_name])
             self.data[var_name] = self.data[var_name].apply(lambda x: code[var_name][x])
-        print("Code variables...")
+
+        for k in code:
+            v = code[k]
+
+            for cond in v:
+                self.trans_dict[k + str(v[cond])] = cond
+        print("Variables coded!")
 
         return None
 
@@ -122,6 +138,8 @@ class LinearMixedModel:
             new_data = pd.concat([new_data, filtered_sub_data], ignore_index=True)
 
         self.data = new_data.copy()
+
+        return None
 
 
     def fit(self, optimizer=[], prev_formula=""):
@@ -169,7 +187,7 @@ class LinearMixedModel:
 
             formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
             formula = Formula(formula_str)
-            print(f"Running FORMULA -> {formula_str}")
+            print(f"[*] FORMULA -> {formula_str}", end="\r")
 
             if not optimizer:
                 model1 = lmerTest.lmer(formula, REML=True, data=r_data)
@@ -231,17 +249,17 @@ class LinearMixedModel:
             isGoodModel = not isWarning and not isTooLargeCorr
 
             if isGoodModel:
-                print("√ Found good model")
+                print(f"[√] FORMULA -> {formula_str}")
                 break
             else:
                 if not any(random_model.values()):
-                    print("× No model fit")
+                    print(f"[×] FORMULA -> {formula_str}", end="\r")
                     break
 
                 rf2ex = df.loc[df[2].idxmin(0)][0]
                 ff2ex = df.loc[df[2].idxmin(0)][1]
 
-                print(f"Next FORMULA, excluding random model item × {ff2ex} | {rf2ex}")
+                print(f"Next FORMULA, excluding random model item {ff2ex} | {rf2ex}", end="\r")
 
                 # Processing EXCLUSION
                 for ff2ex_item in random_model[rf2ex]:
@@ -251,27 +269,14 @@ class LinearMixedModel:
 
             # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
             # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
-
-        self.summary = summary_model1_r
-
-        anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
-        anova_model1 = r2p(anova_model1)
-
-        self.anova = anova_model1
-        # model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, self.data=r_data)
-        # summary_model1_r = Matrix.summary(model1)
-        # print(summary_model1_r)
-
         print("Looking for main effect(s)/interaction(s)...")
 
+        self.summary = summary_model1_r
+        anova_model1 = r2p(stats.anova(model1, type=3, ddf="Kenward-Roger"))
+        self.anova = anova_model1
+
+
         final_rpt = f"For RT data, F test was conducted on the optimal model ({formula_str}). "
-
-        rep_terms = self.translation
-        for rep_term in rep_terms:
-            rep_terms[rep_term] = rep_terms[rep_term].replace(" ", "_")
-
-        for rep_term in rep_terms:
-            final_rpt = final_rpt.replace(rep_term, rep_terms[rep_term])
 
         for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
             if "ntercept" in sig_items:
@@ -279,68 +284,67 @@ class LinearMixedModel:
             df_item = anova_model1[anova_model1["Pr(>F)"] <= 0.05].loc[sig_items]
 
             sig_items = sig_items.split(":")
-            print(sig_items)
+
             item_num = len(sig_items)
-            """
-            Name: Tsyl, dtype: float64
-            Sum Sq      1.120534
-            Mean Sq     1.120534
-            NumDF       1.000000
-            DenDF      21.842760
-            F value    11.519495
-            Pr(>F)      0.002627
-            Name: Tsyl, dtype: float64
-            """
+
             if item_num == 1:
                 # print(f"Main effect {sig_items}")
                 emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
                 emmeans_result_dict = extract_contrast(str(emmeans_result), factor_num=item_num)[0]
 
-                final_rpt += f"The main effect of {sig_items[0]} was significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
-                final_rpt += f"Post-hoc analysis revealed that "
+                final_rpt += (f"The main effect of {sig_items[0].replace('_', ' ')} was significant "
+                              f"(F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, "
+                              f"p={df_item['Pr(>F)']:.3f}). Post-hoc analysis revealed that ")
+
+                lvl1 = emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')
+                lvl2 = emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')
+
                 if float(emmeans_result_dict['p.value']) <= 0.05:
-                    final_rpt += f"RT for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} " \
+                    final_rpt += f"RT for {self.trans_dict[lvl1]} condition " \
                                  f"was significantly {'higher' if float(emmeans_result_dict['estimate']) > 0 else 'lower'}" \
-                                 f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} (" \
+                                 f" than that for {self.trans_dict[lvl2]} (" \
                                  f"β={emmeans_result_dict['estimate']}, " \
                                  f"SE={emmeans_result_dict['SE']}, " \
                                  f"df={emmeans_result_dict['df']}, " \
                                  f"t={emmeans_result_dict['t.ratio']}, " \
                                  f"p={float(emmeans_result_dict['p.value']):.3f}). "
-                else:
-                    final_rpt += f"there was no significant difference between {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')}" \
-                                 f" and {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} in RT (" \
+
+                elif float(emmeans_result_dict['p.value']) > 0.05:
+                    final_rpt += f"there was no significant difference between {self.trans_dict[lvl1]}" \
+                                 f" and {self.trans_dict[lvl2]} in RT (" \
                                  f"β={emmeans_result_dict['estimate']}, " \
                                  f"SE={emmeans_result_dict['SE']}, " \
                                  f"df={emmeans_result_dict['df']}, " \
                                  f"t={emmeans_result_dict['t.ratio']}, " \
                                  f"p={float(emmeans_result_dict['p.value']):.3f}). "
+
 
             elif item_num == 2:
                 # print(f"2-way Interaction {sig_items}")
-                final_rpt += f"The interaction between {' and '.join(sig_items)} was significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
-                final_rpt += f"Simple effect analysis showed that, "
+                final_rpt += (f"The interaction between {sig_items[0].replace('_', ' ')} and {sig_items[1].replace('_', ' ')}"
+                              f" was significant (F({int(df_item['NumDF'])},"
+                              f"{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f})."
+                              f" Simple effect analysis showed that, ")
+
                 for i1, i2 in [(0, 1), (-1, -2)]:
                     emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[i1], by=sig_items[i2]), "pairwise", adjust="bonferroni")
-                    print(1111)
-                    print(str(emmeans_result))
-                    print(1111)
                     for emmeans_result_dict in extract_contrast(str(emmeans_result), item_num):
-
-                        final_rpt += f"under {emmeans_result_dict['under_cond']} condition, "
-                        print(emmeans_result_dict)
+                        lvl1 = emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')
+                        lvl2 = emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')
+                        final_rpt += f"under {self.trans_dict[emmeans_result_dict['under_cond']]} condition, "
+                        # print(emmeans_result_dict)
                         if float(emmeans_result_dict['p.value']) <= 0.05:
-                            final_rpt += f"RT for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} condition " \
+                            final_rpt += f"RT for {self.trans_dict[lvl1]} condition " \
                                          f"was significantly {'higher' if float(emmeans_result_dict['estimate']) > 0 else 'lower'}" \
-                                         f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} condition (" \
+                                         f" than that for {self.trans_dict[lvl2]} condition (" \
                                          f"β={emmeans_result_dict['estimate']}, " \
                                          f"SE={emmeans_result_dict['SE']}, " \
                                          f"df={emmeans_result_dict['df']}, " \
                                          f"t={emmeans_result_dict['t.ratio']}, " \
                                          f"p={float(emmeans_result_dict['p.value']):.3f})"
                         else:
-                            final_rpt += f"no significant difference was found between {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} condition " \
-                                         f"and {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} condition in RT (" \
+                            final_rpt += f"no significant difference was found between {self.trans_dict[lvl1]} condition " \
+                                         f"and {self.trans_dict[lvl2]} condition in RT (" \
                                          f"β={emmeans_result_dict['estimate']}, " \
                                          f"SE={emmeans_result_dict['SE']}, " \
                                          f"df={emmeans_result_dict['df']}, " \
@@ -358,8 +362,8 @@ class LinearMixedModel:
             if "ntercept" in sig_items:
                 continue
             df_item = anova_model1[anova_model1["Pr(>F)"] > 0.05].loc[sig_items]
+            sig_items = [sig_item.replace("_", " ") for sig_item in sig_items.split(":")]
 
-            sig_items = sig_items.split(":")
             item_num = len(sig_items)
             """
             Name: Tsyl, dtype: float64
@@ -383,20 +387,16 @@ class LinearMixedModel:
                 # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
                 final_rpt += f"The interaction between {sig_items[0]}, {' and '.join(sig_items[1:])} was not significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
 
-        print("Generating Reports...")
+        print("Generating Reports...", end="")
 
-        rep_terms = self.translation
-
-        rep_terms["=0.000"] = "<0.001"
-
-        for rep_term in rep_terms:
-            final_rpt = final_rpt.replace(rep_term, rep_terms[rep_term])
+        final_rpt = final_rpt.replace("=0.000", "<0.001")
 
         if isGoodModel:
             self.formula = formula_str
 
         self.report = final_rpt
 
+        print("Completed")
 
 class GeneralizedLinearMixedModel:
 
@@ -404,6 +404,7 @@ class GeneralizedLinearMixedModel:
         self.path = None
         self.report = None
         self.formula = None
+        self.code_dict = None
 
         # Data exclusion
         self.isExcludeSD = True
@@ -414,16 +415,22 @@ class GeneralizedLinearMixedModel:
         self.random_var = []
 
         # Generate report
-        self.translation = {}
+        self.trans_dict = {}
 
     def read_data(self, path):
-        print("Reading Data...")
+        """
+        Read data from the data path
+        :param path: data file path
+        :return: None
+        """
+
+
+        print("Reading Data...", end="")
         # Read .csv self.data (it can accept formats like .xlsx, just change pd.read_XXX)
         self.data = pd.read_csv(path, encoding="utf-8")
         print("Data collected!")
 
-    def translate_variables(self, translation):
-        self.translation = translation
+        return None
 
     def code_variables(self, code):
         """
@@ -431,12 +438,21 @@ class GeneralizedLinearMixedModel:
         :param code: your coding dict
         :return: None
         """
+
+        print("Coding variables...", end="")
+
+        self.code_dict = code
         for var_name in code:
-            for value_bfr, value_aft in code[var_name]:
-                if "T" + var_name in self.data:
-                    self.data['T' + var_name] += value_aft * (self.data[var_name] == value_bfr)
-                else:
-                    self.data['T' + var_name] = value_aft * (self.data[var_name] == value_bfr)
+            # print(var_name, code[var_name])
+            self.data[var_name] = self.data[var_name].apply(lambda x: code[var_name][x])
+
+        for k in code:
+            v = code[k]
+
+            for cond in v:
+                self.trans_dict[k + str(v[cond])] = cond
+        print("Variables coded!")
+
         return None
 
     def exclude_trial_SD(self, target: str, subject: str, SD=2.5):
@@ -465,11 +481,15 @@ class GeneralizedLinearMixedModel:
 
         self.data = new_data.copy()
 
+        return None
+
+
     def fit(self, optimizer=[], prev_formula=""):
 
         dep_var = self.dep_var
         fixed_factor = self.indep_var
         random_factor = self.random_var
+
 
         fixed_str = " * ".join(fixed_factor)
         fixed_combo = []
@@ -507,7 +527,8 @@ class GeneralizedLinearMixedModel:
 
             formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
             formula = Formula(formula_str)
-            print(f"Running FORMULA -> {formula_str}")
+            print(f"[*] FORMULA -> {formula_str}", end="\r")
+
             if not optimizer:
                 model1 = lme4.glmer(formula, family="binomial", data=r_data)
 
@@ -569,91 +590,76 @@ class GeneralizedLinearMixedModel:
             isGoodModel = not isWarning and not isTooLargeCorr
 
             if isGoodModel:
-                print("√ Found good model")
+                print(f"[√] Running FORMULA -> {formula_str}")
+
                 break
             else:
                 if not any(random_model.values()):
-                    print("× No model fit")
+                    print(f"[×] Running FORMULA -> {formula_str}", end="\r")
                     break
 
                 rf2ex = df.loc[df[2].idxmin(0)][0]
                 ff2ex = df.loc[df[2].idxmin(0)][1]
 
-                print(f"Next FORMULA, excluding random model item × {ff2ex} | {rf2ex}")
+                print(f"Next FORMULA, excluding random model item × {ff2ex} | {rf2ex}", end="\r")
 
                 # Processing EXCLUSION
                 for ff2ex_item in random_model[rf2ex]:
                     if sorted(ff2ex_item.split(":")) == sorted(ff2ex.split(":")):
                         random_model[rf2ex].remove(ff2ex_item)
-                # print(random_model)
-
-            # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
-            # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
 
         self.summary = summary_model1_r
-
-        anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
-        anova_model1 = r2p(anova_model1)
-
+        anova_model1 = r2p(car.Anova(model1, type=3, test="Chisq"))
         self.anova = anova_model1
-        # model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, self.data=r_data)
-        # summary_model1_r = Matrix.summary(model1)
-        # print(summary_model1_r)
 
         print("Looking for main effect(s)/interaction(s)...")
 
         final_rpt = f"For ACC lmm_data, Wald chi-square test was conducted on the optimal model ({formula_str}). "
-
-        rep_terms = self.translation
-        for rep_term in rep_terms:
-            rep_terms[rep_term] = rep_terms[rep_term].replace(" ", "_")
-
-        for rep_term in rep_terms:
-            final_rpt = final_rpt.replace(rep_term, rep_terms[rep_term])
-
+        # print(anova_model1)
         for sig_items in anova_model1[anova_model1["Pr(>Chisq)"] <= 0.05].index.tolist():
             if "ntercept" in sig_items:
                 continue
-            df_item = anova_model1[anova_model1["Pr(>Chisq)"] <= 0.05].loc[sig_items]
-            # print(df_item)
-            sig_items = sig_items.split(":")
-            item_num = len(sig_items)
 
-            """
-            Chisq         3.938184
-            Df            1.000000
-            Pr(>Chisq)    0.047202
-            Name: Tsyl, dtype: float64
-            """
-            if item_num == 1:
+            df_item = anova_model1[anova_model1["Pr(>Chisq)"] <= 0.05].loc[sig_items]
+            sig_items = sig_items.split(":")
+
+            if len(sig_items) == 1:
                 # print(f"Main Effect {sig_items}")
-                emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise",
-                                                  adjust="bonferroni")
+                emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
                 emmeans_result_dict = extract_contrast(str(emmeans_result))
                 # print(emmeans_result)
-                final_rpt += f"The main effect of {sig_items[0]} was significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, p={df_item['Pr(>Chisq)']:.3f}). "
-                final_rpt += f"Post-hoc analysis revealed that "
-                # print(emmeans_result_dict)
+                lvl1 = emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')
+                lvl2 = emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')
+
+                final_rpt += (f"The main effect of {sig_items[0].replace('_', ' ')} was"
+                              f" significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f},"
+                              f" p={df_item['Pr(>Chisq)']:.3f}). Post-hoc analysis revealed that ")
+
                 if float(emmeans_result_dict['p.value']) <= 0.05:
-                    final_rpt += f"ACC for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} " \
+                    final_rpt += f"ACC for {self.trans_dict[lvl1]} " \
                                  f"was significantly {'higher' if float(emmeans_result_dict['estimate']) > 0 else 'lower'}" \
-                                 f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} (" \
+                                 f" than that for {self.trans_dict[lvl2]} (" \
                                  f"β={emmeans_result_dict['estimate']}, " \
                                  f"SE={emmeans_result_dict['SE']}, " \
                                  f"z={emmeans_result_dict['z.ratio']}, " \
                                  f"p={float(emmeans_result_dict['p.value']):.3f}). "
                 else:
-                    final_rpt += f"there was no significant difference between {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')}" \
-                                 f" and {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} in ACC (" \
+                    final_rpt += f"there was no significant difference between {self.trans_dict[lvl1]}" \
+                                 f" and {self.trans_dict[lvl2]} in ACC (" \
                                  f"β={emmeans_result_dict['estimate']}, " \
                                  f"SE={emmeans_result_dict['SE']}, " \
                                  f"z={emmeans_result_dict['z.ratio']}, " \
                                  f"p={float(emmeans_result_dict['p.value']):.3f}). "
 
-            elif item_num == 2:
+            elif len(sig_items) == 2:
                 # print(f"2-way Interaction {sig_items}")
-                final_rpt += f"The interaction between {' and '.join(sig_items)} was significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, p={df_item['Pr(>Chisq)']:.3f}). "
-                final_rpt += f"Simple effect analysis showed that, "
+                lvl1 = emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')
+                lvl2 = emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')
+
+                final_rpt += (f"The interaction between {sig_items[0].replace('_', ' ')} and"
+                              f" {sig_items[1].replace('_', ' ')} was significant"
+                              f" (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, "
+                              f"p={df_item['Pr(>Chisq)']:.3f}). Simple effect analysis showed that, ")
 
                 for i1, i2 in [(0, 1), (-1, -2)]:
                     emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[i1], by=sig_items[i2]),
@@ -664,16 +670,16 @@ class GeneralizedLinearMixedModel:
                         final_rpt += f"under {emmeans_result_dict['under_cond']} condition, "
 
                         if float(emmeans_result_dict['p.value']) <= 0.05:
-                            final_rpt += f"ACC for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} condition " \
+                            final_rpt += f"ACC for {self.trans_dict[lvl1]} condition " \
                                          f"was significantly {'higher' if float(emmeans_result_dict['estimate']) > 0 else 'lower'}" \
-                                         f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} condition (" \
+                                         f" than that for {self.trans_dict[lvl2]} condition (" \
                                          f"β={emmeans_result_dict['estimate']}, " \
                                          f"SE={emmeans_result_dict['SE']}, " \
                                          f"z={emmeans_result_dict['z.ratio']}, " \
                                          f"p={float(emmeans_result_dict['p.value']):.3f})"
                         else:
-                            final_rpt += f"no significant difference was found between {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')}" \
-                                         f" condition and {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} condition in ACC (" \
+                            final_rpt += f"no significant difference was found between {self.trans_dict[lvl1]}" \
+                                         f" condition and {self.trans_dict[lvl2]} condition in ACC (" \
                                          f"β={emmeans_result_dict['estimate']}, " \
                                          f"SE={emmeans_result_dict['SE']}, " \
                                          f"z={emmeans_result_dict['z.ratio']}, " \
@@ -683,40 +689,46 @@ class GeneralizedLinearMixedModel:
 
                 final_rpt = final_rpt[:-2] + ". "
 
-            elif item_num >= 3:
+            elif len(sig_items) >= 3:
                 final_rpt += "[Write here for 3-way analysis]"
-                # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
+
 
         for sig_items in anova_model1[anova_model1["Pr(>Chisq)"] > 0.05].index.tolist():
             if "ntercept" in sig_items:
                 continue
             df_item = anova_model1[anova_model1["Pr(>Chisq)"] > 0.05].loc[sig_items]
+            sig_items = [sig_item.replace("_", " ") for sig_item in sig_items.split(":")]
 
-            sig_items = sig_items.split(":")
-            item_num = len(sig_items)
-
-            if item_num == 1:
+            if len(sig_items) == 1:
                 # print(f"Main effect {sig_items}")
-                final_rpt += f"The main effect of {sig_items[0]} was not significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, p={df_item['Pr(>Chisq)']:.3f}). "
+                final_rpt += (f"The main effect of {sig_items[0]} was not"
+                              f" significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f},"
+                              f" p={df_item['Pr(>Chisq)']:.3f}). ")
 
-            elif item_num == 2:
+            elif len(sig_items) == 2:
                 # print(f"2-way Interaction {sig_items}")
-                final_rpt += f"The interaction between {' and '.join(sig_items)} was not significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, p={df_item['Pr(>Chisq)']:.3f}). "
+                final_rpt += (f"The interaction between {sig_items[0]}"
+                              f"and {sig_items[1].replace('_', ' ')} was not significant"
+                              f" (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f},"
+                              f" p={df_item['Pr(>Chisq)']:.3f}). ")
 
-            elif item_num >= 3:
+            elif len(sig_items) >= 3:
                 # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
-                final_rpt += f"The interaction between {sig_items[0]}, {' and '.join(sig_items[1:])} was not significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, p={df_item['Pr(>Chisq)']:.3f}). "
+                final_rpt += (f"The interaction between {sig_items[0]}, "
+                              f"{sig_items[1].replace('_', ' ')} and {sig_items[2].replace('_', ' ')}"
+                              f" was not significant (\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f},"
+                              f" p={df_item['Pr(>Chisq)']:.3f}). ")
 
-        print("Generating Reports...")
 
-        rep_terms = self.translation
 
-        rep_terms["=0.000"] = "<0.001"
+        print("Generating Reports...", end="")
 
-        for rep_term in rep_terms:
-            final_rpt = final_rpt.replace(rep_term, rep_terms[rep_term])
+        final_rpt = final_rpt.replace("=0.000", "<0.001")
 
         if isGoodModel:
             self.formula = formula_str
 
         self.report = final_rpt
+
+        print("Completed")
+
