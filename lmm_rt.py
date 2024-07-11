@@ -55,7 +55,7 @@ def extract_contrast(contrast_str, interaction=0):
 # Step 1/5: Select SUBSET!!!
 # ---------------------------------
 
-# Read .csv data (it can accept formats like .xlsx, just change pd.read_XXX)
+# Read .csv lmm_data (it can accept formats like .xlsx, just change pd.read_XXX)
 data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 
 print("Reading Data——>>>", end="")
@@ -66,7 +66,7 @@ print("Reading Data——>>>", end="")
 # delete the line(s) you do not need, or press ctrl+/ annotating the line(s).
 
 
-# Preserve data only within 2.5 * SD
+# Preserve lmm_data only within 2.5 * SD
 new_data = pd.DataFrame()
 
 for sub in list(set(data["sub"])):
@@ -91,32 +91,32 @@ for sub in list(set(data["sub"])):
         data['consistency'] = (((data['priming'] == "priming") & (data['exp_type'] == "exp1")) | ((data['priming'] == "primingeq") & (data['exp_type'] == "exp2"))).astype(int)
 """
 # Save only both exists
-for sub in list(set(data["sub"].tolist())):
-    for word in list(set(data["word"].tolist())):
+for sub in list(set(lmm_data["sub"].tolist())):
+    for word in list(set(lmm_data["word"].tolist())):
 
-        if not len(data[(data["sub"] == sub) & (data["word"] == word)]) == 2:
-            data = data[~((data["sub"] == sub) & (data["word"] == word))]
+        if not len(lmm_data[(lmm_data["sub"] == sub) & (lmm_data["word"] == word)]) == 2:
+            lmm_data = lmm_data[~((lmm_data["sub"] == sub) & (lmm_data["word"] == word))]
 
 
 # Subtract A with B
-df1 = data[data['consistency'] == 1]
+df1 = lmm_data[lmm_data['consistency'] == 1]
 df1 = df1.sort_values(by=["sub", "word"])
 df1 = df1.reset_index(drop=False)
 
-df0 = data[data['consistency'] == 0]
+df0 = lmm_data[lmm_data['consistency'] == 0]
 df0 = df0.sort_values(by=["sub", "word"])
 df0 = df0.reset_index(drop=False)
 
 
 df1["rt_diff"] = df1["rt"] - df0["rt"]
 
-data = df1.copy()
+lmm_data = df1.copy()
 """
 
-data = data[data['ifcorr'] == 1]  # rt data works on ACC = 1
+data = data[data['ifcorr'] == 1]  # rt lmm_data works on ACC = 1
 
 data['rt'] = data['rt'] * 1000  # if rt is in ms, * 1000 might be better
-# data = data[data['exp_type'] == "exp1"]  # pick out one exp
+# lmm_data = lmm_data[lmm_data['exp_type'] == "exp1"]  # pick out one exp
 data = data[data['ifanimal'] == True]  # pick out one exp
 
 print("Data collected!")
@@ -137,13 +137,8 @@ print("Data collected!")
 # https://online.stat.psu.edu/stat502/lesson/10/10.2
 # https://stats.oarc.ucla.edu/spss/faq/coding-systems-for-categorical-variables-in-regression-analysis/
 
-data['Tpriming'] = -0.5 * (data['priming'] == "priming") + 0.5 * (data['priming'] != "priming")
-data['Tsyl'] = -0.5 * (data['syl'] == 2) + 0.5 * (data['syl'] != 2)
-data['Texp_type'] = -0.5 * (data['exp_type'] == "exp1") + 0.5 * (data['exp_type'] != "exp1")
-data["Tifanimal"] = -0.5 * (data['ifanimal'] == True) + 0.5 * (data['ifanimal'] != True)
-data["Tconsistency"] = -0.5 * (data['consistency'] == 1) + 0.5 * (data['consistency'] != 1)
 
-# data.to_csv("Data_Exp_rtdiff.csv", index=False)
+# lmm_data.to_csv("Data_Exp_rtdiff.csv", index=False)
 # ---------------------------------
 # Step 4/5: Write your variables and create Formula
 # ---------------------------------
@@ -171,7 +166,7 @@ for i in range(len(fixed_factor), 0, -1):  # 从1开始，因为0会生成空集
 # Step 5/5 [Optional]: If you want to skip a few formulas
 # ---------------------------------
 
-prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 | sub) + (1 | word)" # "rt ~ Tsyl * Tconsistency * Texp_type + (1 | sub) + (1 | word)"
+prev_formula = "rt ~ Tsyl * Tconsistency * Texp_type + (1 +Texp_type| sub) + (1 | word)"# "rt ~ Tsyl * Tconsistency * Texp_type + (1 | sub) + (1 | word)"
 
 
 # ---------------------------------
@@ -188,7 +183,7 @@ if prev_formula:
 else:
     random_model = {key: fixed_combo[:] for key in random_factor}
 
-# Change pandas DataFrame into R language's data.frame
+# Change pandas DataFrame into R language's lmm_data.frame
 with (ro.default_converter + pandas2ri.converter).context():
     r_data = ro.conversion.get_conversion().py2rpy(data)
 while True:
@@ -284,7 +279,7 @@ anova_model1 = stats.anova(model1, type=3, ddf="Kenward-Roger")
 anova_model1 = r2p(anova_model1)
 print(anova_model1)
 
-# model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, data=r_data)
+# model1 = lmerTest.lmer(Formula("rt ~ Tpriming * Tsyl + (1 | sub) + (1 | word)"), REML=True, lmm_data=r_data)
 # summary_model1_r = Matrix.summary(model1)
 # print(summary_model1_r)
 
@@ -295,14 +290,14 @@ print()
 print()
 
 
-final_rpt = f"For RT data, F test was conducted on the optimal model ({formula_str}). "
+final_rpt = f"For RT lmm_data, F test was conducted on the optimal model ({formula_str}). "
 
 rep_terms = {
     "rt": "RT",
     "sub": "subject",
     "word": "item",
     "Tsyl": "syllable_number",
-    "Texp_type": "isochrony",
+    "Texp_type": "speech_isochrony",
     "Tconsistency": "priming_effect"
 }
 for rep_term in rep_terms:
@@ -359,20 +354,20 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] <= 0.05].index.tolist():
             emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[i1], by=sig_items[i2]), "pairwise", adjust="bonferroni")
             for emmeans_result_dict in extract_contrast(str(emmeans_result), 1):
 
-                final_rpt += f"under the condition of {emmeans_result_dict['under_cond']}, "
+                final_rpt += f"under {emmeans_result_dict['under_cond']} condition, "
 
                 if float(emmeans_result_dict['p.value']) <= 0.05:
-                    final_rpt += f"RT for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} "\
+                    final_rpt += f"RT for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} condition "\
                                  f"was significantly {'higher' if float(emmeans_result_dict['estimate']) > 0 else 'lower'}"\
-                                 f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} ("\
+                                 f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} condition ("\
                                  f"β={emmeans_result_dict['estimate']}, "\
                                  f"SE={emmeans_result_dict['SE']}, "\
                                  f"df={emmeans_result_dict['df']}, "\
                                  f"t={emmeans_result_dict['t.ratio']}, "\
                                  f"p={float(emmeans_result_dict['p.value']):.3f})"
                 else:
-                    final_rpt += f"no significant difference was found between {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')}"\
-                                 f" and {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} in RT ("\
+                    final_rpt += f"no significant difference was found between {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} condition "\
+                                 f"and {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} condition in RT ("\
                                  f"β={emmeans_result_dict['estimate']}, "\
                                  f"SE={emmeans_result_dict['SE']}, "\
                                  f"df={emmeans_result_dict['df']}, "\
@@ -420,17 +415,17 @@ for sig_items in anova_model1[anova_model1["Pr(>F)"] > 0.05].index.tolist():
 
 
 rep_terms = {
-    "Tsyl-0.5": "disyllable",
-    "Tsyl0.5": "trisyllable",
+    "Tsyl-0.5": "disyllabic",
+    "Tsyl0.5": "trisyllabic",
     "Tsyl": "syllable number",
 
-    "Texp_type-0.5": "stress-timing",
-    "Texp_type0.5": "syllable-timing",
-    "Texp_type": "isochrony",
+    "Texp_type-0.5": "original",
+    "Texp_type0.5": "null",
+    "Texp_type": "speech isochrony",
 
+    "Tconsistency-0.5": "consistent",
+    "Tconsistency0.5": "inconsistent",
     "Tconsistency": "priming effect",
-    "Tconsistency-0.5": "consistency",
-    "Tconsistency0.5": "inconsistency",
 
     "=0.000": "<0.001"
 

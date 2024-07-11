@@ -13,13 +13,14 @@ Matrix = importr("Matrix")
 lme4 = importr("lme4")
 nlme = importr("nlme")
 
+
 def r2p(r_obj):
     with (ro.default_converter + pandas2ri.converter).context():
         return ro.conversion.get_conversion().rpy2py(r_obj)
 
+
 def extract_contrast(contrast_str, interaction=0):
     raw_contrast = contrast_str.split("\n")
-    print(111111111)
     if interaction == 0:
         contrast_dict = dict(zip(
             raw_contrast[0][1:].split(),
@@ -51,7 +52,7 @@ def extract_contrast(contrast_str, interaction=0):
 # Step 1/5: Select SUBSET!!!
 # ---------------------------------
 
-# Read .csv data (it can accept formats like .xlsx, just chagne pd.read_XXX)
+# Read .csv lmm_data (it can accept formats like .xlsx, just chagne pd.read_XXX)
 data = pd.read_csv("Data_Experiment.csv", encoding="utf-8")
 
 print("Reading Data——>>>", end="")
@@ -63,7 +64,7 @@ print("Reading Data——>>>", end="")
 
 
 
-# Preserve data only within 2.5 * SD
+# Preserve lmm_data only within 2.5 * SD
 new_data = pd.DataFrame()
 for sub in list(set(data["sub"])):
     sub_data = data[data["sub"] == sub]
@@ -85,14 +86,14 @@ for sub in list(set(data["sub"])):
     for word in list(set(data["word"])):
         data['consistency'] = (((data['priming'] == "priming") & (data['exp_type'] == "exp1")) | ((data['priming'] == "primingeq") & (data['exp_type'] == "exp2"))).astype(int)
 
-# data = data[data['exp_type'] == "exp1"]  # pick out one exp
+# lmm_data = lmm_data[lmm_data['exp_type'] == "exp1"]  # pick out one exp
 
 
 data = data[data['ifanimal'] == True]
 
-# print(len(data[data["exp_type"] == "exp1"]["sub"].unique()), len(data[data["exp_type"] == "exp2"]["sub"].unique()))
-# for sub in data["sub"].unique():
-#     sub_data = data[data["sub"] == sub]
+# print(len(lmm_data[lmm_data["exp_type"] == "exp1"]["sub"].unique()), len(lmm_data[lmm_data["exp_type"] == "exp2"]["sub"].unique()))
+# for sub in lmm_data["sub"].unique():
+#     sub_data = lmm_data[lmm_data["sub"] == sub]
 #     if len(sub_data[sub_data["ifcorr"] == 1])/len(sub_data) <= 0.5:
 #         print(sub, sub_data["exp_type"].unique())
 #         print(len(sub_data[sub_data["ifcorr"] == 1])/len(sub_data))
@@ -167,7 +168,7 @@ if prev_formula:
 else:
     random_model = {key: fixed_combo[:] for key in random_factor}
 
-# Change pandas DataFrame into R language's data.frame
+# Change pandas DataFrame into R language's lmm_data.frame
 with (ro.default_converter + pandas2ri.converter).context():
     r_data = ro.conversion.get_conversion().py2rpy(data)
 while True:
@@ -269,14 +270,14 @@ print()
 print()
 
 
-final_rpt = f"For ACC data, Wald chi-square test was conducted on the optimal model ({formula_str}). "
+final_rpt = f"For ACC lmm_data, Wald chi-square test was conducted on the optimal model ({formula_str}). "
 
 rep_terms = {
     "ifcorr": "ACC",
     "sub": "subject",
     "word": "item",
     "Tsyl": "syllable_number",
-    "Texp_type": "isochrony",
+    "Texp_type": "speech_isochrony",
     "Tconsistency": "priming_effect"
 }
 for rep_term in rep_terms:
@@ -331,19 +332,19 @@ for sig_items in anova_model1[anova_model1["Pr(>Chisq)"] <= 0.05].index.tolist()
 
             for emmeans_result_dict in extract_contrast(str(emmeans_result), 1):
 
-                final_rpt += f"under the condition of {emmeans_result_dict['under_cond']}, "
+                final_rpt += f"under {emmeans_result_dict['under_cond']} condition, "
 
                 if float(emmeans_result_dict['p.value']) <= 0.05:
-                    final_rpt += f"ACC for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} "\
+                    final_rpt += f"ACC for {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')} condition "\
                                  f"was significantly {'higher' if float(emmeans_result_dict['estimate']) > 0 else 'lower'}"\
-                                 f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} ("\
+                                 f" than that for {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} condition ("\
                                  f"β={emmeans_result_dict['estimate']}, "\
                                  f"SE={emmeans_result_dict['SE']}, "\
                                  f"z={emmeans_result_dict['z.ratio']}, "\
                                  f"p={float(emmeans_result_dict['p.value']):.3f})"
                 else:
                     final_rpt += f"no significant difference was found between {emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')}"\
-                                 f" and {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} in ACC ("\
+                                 f" condition and {emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')} condition in ACC ("\
                                  f"β={emmeans_result_dict['estimate']}, "\
                                  f"SE={emmeans_result_dict['SE']}, "\
                                  f"z={emmeans_result_dict['z.ratio']}, "\
@@ -383,17 +384,18 @@ for sig_items in anova_model1[anova_model1["Pr(>Chisq)"] > 0.05].index.tolist():
 
 
 rep_terms = {
-    "Tsyl-0.5": "disyllable",
-    "Tsyl0.5": "trisyllable",
+    "Tsyl-0.5": "disyllabic",
+    "Tsyl0.5": "trisyllabic",
     "Tsyl": "syllable number",
 
-    "Texp_type-0.5": "stress-timing",
-    "Texp_type0.5": "syllable-timing",
-    "Texp_type": "isochrony",
+    "Texp_type-0.5": "original",
+    "Texp_type0.5": "null",
+    "Texp_type": "speech isochrony",
 
+    "Tconsistency-0.5": "consistent",
+    "Tconsistency0.5": "inconsistent",
     "Tconsistency": "priming effect",
-    "Tconsistency-0.5": "consistency",
-    "Tconsistency0.5": "inconsistency",
+
 
     "=0.000": "<0.001"
 
