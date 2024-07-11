@@ -4,9 +4,12 @@ import numpy as np
 import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri, Formula, numpy2ri
-from rpy2.robjects.conversion import localconverter
+# from rpy2.robjects.conversion import localconverter
 from rpy2.robjects.packages import importr
-
+import logging
+# print(__name__)
+logging.disable(logging.CRITICAL)
+# logging.getLogger("core.ezlmm").disabled = True
 pd.set_option("display.max_columns", None)
 
 lmerTest = importr('lmerTest')
@@ -74,6 +77,7 @@ class LinearMixedModel:
 
         # Generate report
         self.trans_dict = {}
+        self.delete_random_item = []
 
     def read_data(self, path):
         """
@@ -187,7 +191,7 @@ class LinearMixedModel:
 
             formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
             formula = Formula(formula_str)
-            print(f"[*] FORMULA -> {formula_str}", end="\r")
+            print(f"\r[*] FORMULA -> {formula_str}", end="")
 
             if not optimizer:
                 model1 = lmerTest.lmer(formula, REML=True, data=r_data)
@@ -249,17 +253,17 @@ class LinearMixedModel:
             isGoodModel = not isWarning and not isTooLargeCorr
 
             if isGoodModel:
-                print(f"[√] FORMULA -> {formula_str}")
+                print(f"\r[√] FORMULA -> {formula_str}")
                 break
             else:
                 if not any(random_model.values()):
-                    print(f"[×] FORMULA -> {formula_str}", end="\r")
+                    print(f"\r[×] FORMULA -> {formula_str}")
                     break
 
                 rf2ex = df.loc[df[2].idxmin(0)][0]
                 ff2ex = df.loc[df[2].idxmin(0)][1]
 
-                print(f"Next FORMULA, excluding random model item {ff2ex} | {rf2ex}", end="\r")
+                self.delete_random_item.append(f"{ff2ex} | {rf2ex}")
 
                 # Processing EXCLUSION
                 for ff2ex_item in random_model[rf2ex]:
@@ -285,9 +289,7 @@ class LinearMixedModel:
 
             sig_items = sig_items.split(":")
 
-            item_num = len(sig_items)
-
-            if item_num == 1:
+            if len(sig_items) == 1:
                 # print(f"Main effect {sig_items}")
                 emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
                 emmeans_result_dict = extract_contrast(str(emmeans_result), factor_num=item_num)[0]
@@ -319,7 +321,7 @@ class LinearMixedModel:
                                  f"p={float(emmeans_result_dict['p.value']):.3f}). "
 
 
-            elif item_num == 2:
+            elif len(sig_items) == 2:
                 # print(f"2-way Interaction {sig_items}")
                 final_rpt += (f"The interaction between {sig_items[0].replace('_', ' ')} and {sig_items[1].replace('_', ' ')}"
                               f" was significant (F({int(df_item['NumDF'])},"
@@ -354,7 +356,7 @@ class LinearMixedModel:
 
                 final_rpt = final_rpt[:-2] + ". "
 
-            elif item_num >= 3:
+            elif len(sig_items) >= 3:
                 final_rpt += "[Write here for 3-way analysis]"
                 # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
 
@@ -364,26 +366,15 @@ class LinearMixedModel:
             df_item = anova_model1[anova_model1["Pr(>F)"] > 0.05].loc[sig_items]
             sig_items = [sig_item.replace("_", " ") for sig_item in sig_items.split(":")]
 
-            item_num = len(sig_items)
-            """
-            Name: Tsyl, dtype: float64
-            Sum Sq      1.120534
-            Mean Sq     1.120534
-            NumDF       1.000000
-            DenDF      21.842760
-            F value    11.519495
-            Pr(>F)      0.002627
-            Name: Tsyl, dtype: float64
-            """
-            if item_num == 1:
+            if len(sig_items) == 1:
                 # print(f"Main effect {sig_items}")
                 final_rpt += f"The main effect of {sig_items[0]} was not significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
 
-            elif item_num == 2:
+            elif len(sig_items) == 2:
                 # print(f"2-way Interaction {sig_items}")
                 final_rpt += f"The interaction between {' and '.join(sig_items)} was not significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
 
-            elif item_num >= 3:
+            elif len(sig_items) >= 3:
                 # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
                 final_rpt += f"The interaction between {sig_items[0]}, {' and '.join(sig_items[1:])} was not significant (F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, p={df_item['Pr(>F)']:.3f}). "
 
@@ -416,6 +407,7 @@ class GeneralizedLinearMixedModel:
 
         # Generate report
         self.trans_dict = {}
+        self.delete_random_item = []
 
     def read_data(self, path):
         """
@@ -527,7 +519,7 @@ class GeneralizedLinearMixedModel:
 
             formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
             formula = Formula(formula_str)
-            print(f"[*] FORMULA -> {formula_str}", end="\r")
+            print(f"\r[*] FORMULA -> {formula_str}", end="")
 
             if not optimizer:
                 model1 = lme4.glmer(formula, family="binomial", data=r_data)
@@ -590,18 +582,18 @@ class GeneralizedLinearMixedModel:
             isGoodModel = not isWarning and not isTooLargeCorr
 
             if isGoodModel:
-                print(f"[√] Running FORMULA -> {formula_str}")
-
+                print(f"\r[√] Running FORMULA -> {formula_str}")
                 break
             else:
                 if not any(random_model.values()):
-                    print(f"[×] Running FORMULA -> {formula_str}", end="\r")
                     break
+                print("\033c", end="")
+                print(f"\r[×] Running FORMULA -> {formula_str}", flush=True)
 
                 rf2ex = df.loc[df[2].idxmin(0)][0]
                 ff2ex = df.loc[df[2].idxmin(0)][1]
 
-                print(f"Next FORMULA, excluding random model item × {ff2ex} | {rf2ex}", end="\r")
+                self.delete_random_item.append(f"{ff2ex} | {rf2ex}")
 
                 # Processing EXCLUSION
                 for ff2ex_item in random_model[rf2ex]:
@@ -614,7 +606,7 @@ class GeneralizedLinearMixedModel:
 
         print("Looking for main effect(s)/interaction(s)...")
 
-        final_rpt = f"For ACC lmm_data, Wald chi-square test was conducted on the optimal model ({formula_str}). "
+        final_rpt = f"For ACC data, Wald chi-square test was conducted on the optimal model ({formula_str}). "
         # print(anova_model1)
         for sig_items in anova_model1[anova_model1["Pr(>Chisq)"] <= 0.05].index.tolist():
             if "ntercept" in sig_items:

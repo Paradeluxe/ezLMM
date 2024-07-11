@@ -1,5 +1,7 @@
 from core.ezlmm import LinearMixedModel, GeneralizedLinearMixedModel
+import warnings
 
+warnings.filterwarnings("ignore")
 
 __all__ = ["LinearMixedModel", "GeneralizedLinearMixedModel"]
 
@@ -32,7 +34,7 @@ if __name__ == "__main__":
     glmm.exclude_trial_SD(target="rt", subject="subject", SD=2.5)
 
     # Fitting the model until it is converged
-    glmm.fit(optimizer=["bobyqa", 1000], prev_formula="")
+    glmm.fit(optimizer=["bobyqa", 1000], prev_formula="acc ~ syllable_number * priming_effect * speech_isochrony + (1 + priming_effect + speech_isochrony | subject) + (1 + speech_isochrony | word)")
 
     # Print report
     print(glmm.report)
