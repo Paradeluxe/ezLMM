@@ -65,7 +65,6 @@ class LinearMixedModel:
         self.path = None
         self.report = None
         self.formula = None
-        self.code_dict = None
 
         # Data exclusion
         self.isExcludeSD = True
@@ -97,13 +96,15 @@ class LinearMixedModel:
     def code_variables(self, code):
         """
         Change the values in each column with certain coding methods (customization)
-        :param code: your coding dict
+        :param code: coding dict
         :return: None
         """
 
         print("Coding variables...", end="")
+        if not code:
+            for var in self.indep_var:
+                code[var] = dict(zip(self.data[var].unique(), self.data[var].unique()))
 
-        self.code_dict = code
         for var_name in code:
             # print(var_name, code[var_name])
             self.data[var_name] = self.data[var_name].apply(lambda x: code[var_name][x])
@@ -191,7 +192,7 @@ class LinearMixedModel:
 
             formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
             formula = Formula(formula_str)
-            print(f"\r[*] FORMULA -> {formula_str}", end="")
+            print(f"\r[*] Running FORMULA -> {formula_str}", end="")
 
             if not optimizer:
                 model1 = lmerTest.lmer(formula, REML=True, data=r_data)
@@ -256,8 +257,9 @@ class LinearMixedModel:
                 print(f"\r[√] FORMULA -> {formula_str}")
                 break
             else:
+                print(f"\r[×] FORMULA -> {formula_str}")
+
                 if not any(random_model.values()):
-                    print(f"\r[×] FORMULA -> {formula_str}")
                     break
 
                 rf2ex = df.loc[df[2].idxmin(0)][0]
@@ -292,7 +294,7 @@ class LinearMixedModel:
             if len(sig_items) == 1:
                 # print(f"Main effect {sig_items}")
                 emmeans_result = emmeans.contrast(emmeans.emmeans(model1, sig_items[0]), "pairwise", adjust="bonferroni")
-                emmeans_result_dict = extract_contrast(str(emmeans_result), factor_num=item_num)[0]
+                emmeans_result_dict = extract_contrast(str(emmeans_result), factor_num=len(sig_items))[0]
 
                 final_rpt += (f"The main effect of {sig_items[0].replace('_', ' ')} was significant "
                               f"(F({int(df_item['NumDF'])},{df_item['DenDF']:.3f})={df_item['F value']:.3f}, "
@@ -330,7 +332,7 @@ class LinearMixedModel:
 
                 for i1, i2 in [(0, 1), (-1, -2)]:
                     emmeans_result = emmeans.contrast(emmeans.emmeans(model1, specs=sig_items[i1], by=sig_items[i2]), "pairwise", adjust="bonferroni")
-                    for emmeans_result_dict in extract_contrast(str(emmeans_result), item_num):
+                    for emmeans_result_dict in extract_contrast(str(emmeans_result), len(sig_items)):
                         lvl1 = emmeans_result_dict['contrast'].split(' - ')[0].strip().strip('()')
                         lvl2 = emmeans_result_dict['contrast'].split(' - ')[1].strip().strip('()')
                         final_rpt += f"under {self.trans_dict[emmeans_result_dict['under_cond']]} condition, "
@@ -395,7 +397,6 @@ class GeneralizedLinearMixedModel:
         self.path = None
         self.report = None
         self.formula = None
-        self.code_dict = None
 
         # Data exclusion
         self.isExcludeSD = True
@@ -418,13 +419,13 @@ class GeneralizedLinearMixedModel:
 
 
         print("Reading Data...", end="")
-        # Read .csv self.data (it can accept formats like .xlsx, just change pd.read_XXX)
+        # Read .csv self.data (it can accept formats like .xlsx, just change to pd.read_XXX)
         self.data = pd.read_csv(path, encoding="utf-8")
         print("Data collected!")
 
         return None
 
-    def code_variables(self, code):
+    def code_variables(self, code={}):
         """
         Change the values in each column with certain coding methods (customization)
         :param code: your coding dict
@@ -433,7 +434,10 @@ class GeneralizedLinearMixedModel:
 
         print("Coding variables...", end="")
 
-        self.code_dict = code
+        if not code:
+            for var in self.indep_var:
+                code[var] = dict(zip(self.data[var].unique(), self.data[var].unique()))
+
         for var_name in code:
             # print(var_name, code[var_name])
             self.data[var_name] = self.data[var_name].apply(lambda x: code[var_name][x])
@@ -519,7 +523,7 @@ class GeneralizedLinearMixedModel:
 
             formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
             formula = Formula(formula_str)
-            print(f"\r[*] FORMULA -> {formula_str}", end="")
+            print(f"\r[*] Runing FORMULA -> {formula_str}", end="")
 
             if not optimizer:
                 model1 = lme4.glmer(formula, family="binomial", data=r_data)
@@ -582,13 +586,13 @@ class GeneralizedLinearMixedModel:
             isGoodModel = not isWarning and not isTooLargeCorr
 
             if isGoodModel:
-                print(f"\r[√] Running FORMULA -> {formula_str}")
+                print(f"\r[√] FORMULA -> {formula_str}")
                 break
             else:
                 if not any(random_model.values()):
                     break
                 print("\033c", end="")
-                print(f"\r[×] Running FORMULA -> {formula_str}", flush=True)
+                print(f"\r[×] FORMULA -> {formula_str}")
 
                 rf2ex = df.loc[df[2].idxmin(0)][0]
                 ff2ex = df.loc[df[2].idxmin(0)][1]

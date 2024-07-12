@@ -23,7 +23,7 @@ if __name__ == "__main__":
     glmm.indep_var = ["syllable_number", "priming_effect", "speech_isochrony"]
     glmm.random_var = ["subject", "word"]
 
-    # [optional] Code your variables (coded var will start with 't', e.g., "name" -> "Tname")
+    # [optional] Code your variables
     glmm.code_variables({
         "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
         "speech_isochrony": {"averaged": -0.5, "original": 0.5},
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     glmm.exclude_trial_SD(target="rt", subject="subject", SD=2.5)
 
     # Fitting the model until it is converged
-    glmm.fit(optimizer=["bobyqa", 1000], prev_formula="acc ~ syllable_number * priming_effect * speech_isochrony + (1 + priming_effect + speech_isochrony | subject) + (1 + speech_isochrony | word)")
+    glmm.fit(optimizer=["bobyqa", 20000], prev_formula="")#acc ~ syllable_number * priming_effect * speech_isochrony + (1 + priming_effect + speech_isochrony | subject) + (1 + speech_isochrony | word)")
 
     # Print report
     print(glmm.report)
@@ -50,8 +50,6 @@ if __name__ == "__main__":
 
     # [optional] If you want to do some extra editing to your data
     lmm.data = lmm.data[lmm.data['acc'] == 1]  # rt self.data works on ACC = 1
-
-
 
     # Define your variables
     lmm.dep_var = "rt"
@@ -70,7 +68,7 @@ if __name__ == "__main__":
     lmm.exclude_trial_SD(target="rt", subject="subject", SD=2.5)
 
     # Fitting the model until it is converged
-    lmm.fit(optimizer=["bobyqa", 1000], prev_formula="rt ~ syllable_number * priming_effect * speech_isochrony + (1 | subject) + (1 | word)")
+    lmm.fit(optimizer=["bobyqa", 20000], prev_formula="rt ~ syllable_number * priming_effect * speech_isochrony + (1 + speech_isochrony | subject) + (1 | word)")
 
     # Print report
     print(lmm.report)
