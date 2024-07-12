@@ -1,7 +1,4 @@
 from core.ezlmm import LinearMixedModel, GeneralizedLinearMixedModel
-import warnings
-
-warnings.filterwarnings("ignore")
 
 __all__ = ["LinearMixedModel", "GeneralizedLinearMixedModel"]
 
