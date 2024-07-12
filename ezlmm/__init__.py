@@ -1,4 +1,4 @@
-from core.ezlmm import LinearMixedModel, GeneralizedLinearMixedModel
+from core import LinearMixedModel, GeneralizedLinearMixedModel
 
 __all__ = ["LinearMixedModel", "GeneralizedLinearMixedModel"]
 
