@@ -592,10 +592,10 @@ class GeneralizedLinearMixedModel:
                 print(f"\r[√] FORMULA -> {formula_str}")
                 break
             else:
+                print(f"\r[×] FORMULA -> {formula_str}")
+
                 if not any(random_model.values()):
                     break
-                print("\033c", end="")
-                print(f"\r[×] FORMULA -> {formula_str}")
 
                 rf2ex = df.loc[df[2].idxmin(0)][0]
                 ff2ex = df.loc[df[2].idxmin(0)][1]
