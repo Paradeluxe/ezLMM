@@ -123,6 +123,44 @@ print(lmm.anova)
 
 
 
+## For the record
+
+### Why I wrote *ezLMM*
+
+You see, my procedure was to start from full random model to null random model, and discard random slope with 
+the least variance. It is not a big deal if you have only 1 or 2 independent variables, but not for 3 and above. 
+You can easily misjudge which item has the least variance. It is annoying and tiring. That is the main reason.
+
+One more thing is that, R language was simply not my thing. But still, I think the best way you can do LMM analysis is to 
+use R packages like `lme4`, `lmerTest`, etc. Therefore, I created *ezlmm*, so that you can enjoy the convenience of Python, and
+at the same time cite these R packages. *ezlmm* is just a Python interface, it's not a big deal; you should credit them for their great work.
+
+
+
+### My understanding of LMM
+
+There was one day I was having a talk with my gf about independent T test and paired T test. I came to understand that, although
+paired T test can take between-subject difference into consideration, it needs to average a lot of trials, which might not be a good thing;
+for independent T test, it preserves the integrity of your data, it fails to take between-subject difference into account. 
+
+And, same thing for repeated-measures ANOVA and regular ANOVA: rm ANOVA needs averaging on each condition; regular ANOVA fails to consider the effect of repeated measures.
+
+Therefore, for my understanding, I believe LMM is the combination of these two advantages: 
+- not averaging your data
+- taking the consideration of between-subject/item/XXXX differences (depending on what's your random factors).
+
+# Contact me
+I am a Psychology/NeuroScience student currently doing my Master program. My area is Psycholinguistics.
+That is to say, I am not a professional in terms of neither statistics nor machine learning.
+I wrote a lot of scripts for my own research as well as my colleagues'. 
+So this is kind of my first Python package (lol I don't even know how to use *pull request*)
+
+Feel free to reach out to me at `paradeluxe3726@gmail.com` or `zhengyuan.liu@connect.um.edu.mo`.
+
+
+
+
+
 
 
 
