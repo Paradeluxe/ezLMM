@@ -426,13 +426,15 @@ class GeneralizedLinearMixedModel:
 
         return None
 
-    def code_variables(self, code={}):
+    def code_variables(self, code=None):
         """
         Change the values in each column with certain coding methods (customization)
         :param code: your coding dict
         :return: None
         """
 
+        if code is None:
+            code = {}
         print("Coding variables...", end="")
 
         if not code:

@@ -1,4 +1,7 @@
-from .core import LinearMixedModel, GeneralizedLinearMixedModel
+if __name__ == "__main__":
+    from core import LinearMixedModel, GeneralizedLinearMixedModel
+else:
+    from .core import LinearMixedModel, GeneralizedLinearMixedModel
 
 __all__ = ["LinearMixedModel", "GeneralizedLinearMixedModel"]
 
@@ -55,9 +58,9 @@ if __name__ == "__main__":
 
     # [optional] Code your variables (coded var will start with 't', e.g., "name" -> "Tname")
     lmm.code_variables({
-        "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
-        "speech_isochrony": {"averaged": -0.5, "original": 0.5},
-        "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
+        # "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
+        # "speech_isochrony": {"averaged": -0.5, "original": 0.5},
+        # "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
     })
 
 
