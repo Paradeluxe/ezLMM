@@ -1,4 +1,8 @@
-# ezLMM: A Python Script for Linear Mixed Model using rpy2
+# ezLMM: Python interface of Linear Mixed Model analysis in R language
+
+## Before installation
+
+Make sure you have downloaded [R interpreter](https://www.r-project.org/) in your system and add it to PATH.
 
 ## Install package
 ```bash
