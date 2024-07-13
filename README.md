@@ -184,7 +184,7 @@ at the same time cite these R packages. *ezlmm* is just a Python interface, it's
 
 There was one day I was having a talk with my gf about independent T test and paired T test. I came to understand that, although
 paired T test can take between-subject difference into consideration, it needs to average a lot of trials, which might not be a good thing;
-for independent T test, it preserves the integrity of your data, it fails to take between-subject difference into account. 
+for independent T test, it preserves the integrity of your data, but fails to take between-subject difference into account. 
 
 And, same thing for repeated-measures ANOVA and regular ANOVA: rm ANOVA needs averaging on each condition; regular ANOVA fails to consider the effect of repeated measures.
 
@@ -196,9 +196,9 @@ Therefore, for my understanding, I believe LMM is the combination of these two a
 I am a Psychology/NeuroScience student currently doing my Master program. My area is Psycholinguistics.
 That is to say, I am not a professional in terms of neither statistics nor machine learning.
 I wrote a lot of scripts for my own research as well as my colleagues'. 
-So this is kind of my first Python package (lol I don't even know how to use *pull request*)
+So this is kind of my first Python package (lol I don't even quite understand how to use *pull request*)
 
-Feel free to reach out to me at `paradeluxe3726@gmail.com` or `zhengyuan.liu@connect.um.edu.mo`.
+Anyway, feel free to reach out to me at `paradeluxe3726@gmail.com` or `zhengyuan.liu@connect.um.edu.mo`!
 
 
 
