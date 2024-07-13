@@ -57,7 +57,7 @@ print(lmm.anova)  # anova on fixed model
 In other words, 
 - *ezlmm* goes from
 `dv ~ iv1 * iv2 + (1+iv1:iv2+iv1+iv2|rf)` to `dv ~ iv1 * iv2 + (1|rf)`.
-- It only stops and generates output until (1) it meets a model that fits, or (2) no a single model fits.
+- It only stops and generates output until (1) it meets a model that fits, or (2) not a single model fits.
 
 ### Import ezlmm
 ```python
@@ -191,6 +191,25 @@ And, same thing for repeated-measures ANOVA and regular ANOVA: rm ANOVA needs av
 Therefore, for my understanding, I believe LMM is the combination of these two advantages: 
 - not averaging your data
 - taking the consideration of between-subject/item/XXXX differences (depending on what's your random factors).
+
+# Citation
+*ezlmm* uses numpy, pandas and rpy2 in Python, and lme4, lmerTest, stats, car, and emmeans from R. It's better that you cite these packages. 
+If you wish to cite *ezlmm*, feel free to link this repo to your paper.
+
+
+Here is description about R packages used in *ezlmm*:
+
+For LinearMixedModel(), *ezlmm* first used [lmerTest package (Kuznetsova et al., 2017)](https://rdocumentation.org/packages/lmerTest)
+to construct a linear mixed-effects model (LMM, estimated using REML). Subsequently, an F test was performed on the optimal model
+using anova function from [stats package (Team, 2024)](https://search.r-project.org/R/refmans/stats/html/00Index.html).
+
+For GeneralizedLinearMixedModel(), *ezlmm* first used [lme4 package (Bates et al., 2015)](https://cran.r-project.org/web/packages/lme4/)
+to construct a generalized linear mixed model (GLMM), following a Chi-squared test
+using [Anova function from the car package (Fox & Weisberg, 2019)](https://cran.r-project.org/web/packages/car).
+
+If a significant main effect or interaction was found, post-hoc and simple effects analyses
+would be conducted leveraging [emmeans package (Lenth, 2024)](https://cran.r-project.org/web/packages/emmeans/).
+
 
 # Contact me
 I am a Psychology/NeuroScience student currently doing my Master program. My area is Psycholinguistics.
