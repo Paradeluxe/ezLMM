@@ -9,7 +9,46 @@ Make sure you have downloaded [R interpreter](https://www.r-project.org/) in you
 pip install ezlmm
 ```
 
-## How to use this package
+# How to use this package
+## Example: LMM on Reaction Time
+```python
+from ezlmm import LinearMixedModel, GeneralizedLinearMixedModel
+
+
+lmm = LinearMixedModel()
+# glmm = GeneralizedLinearMixedModel()
+
+lmm.read_data("data_path.csv")  # Change with your own data path
+
+
+# Dependant variable
+lmm.dep_var = "rt"
+# Independent variable(s)
+lmm.indep_var = ["syllable_number", "priming_effect", "speech_isochrony"]
+# Random factor(s)
+lmm.random_var = ["subject", "word"]
+
+
+# [Optional]
+lmm.exclude_trial_SD(target="rt", subject="subject", SD=2.5)
+lmm.data = lmm.data[lmm.data['acc'] == 1]
+lmm.code_variables({
+    "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
+    "speech_isochrony": {"averaged": -0.5, "original": 0.5},
+    "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
+})
+
+
+# Fitting the model until it is converged
+lmm.fit()
+
+# Print output
+print(lmm.report)  # plain text for your paper
+print(lmm.summary)  # model fitting 
+print(lmm.anova)  # anova on fixed model
+```
+
+## Step by Step
 ### Need to know
 - *ezlmm* executes from **full model** to **null model** for random model.
 - *ezlmm* operates on **full fixed model** and won't change your fixed model. (i.e., It stays the same.)
