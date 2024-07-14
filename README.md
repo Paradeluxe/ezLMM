@@ -63,7 +63,8 @@ In other words,
 ```python
 # In my research area:
 # continuous variables (e.g., reaction time) use lmm
-# categorical variables (e.g., accuracy) use glmm
+# categorical variables use glmm(family="possion")
+# binomial variables use glmm(family="binomial") * default
 
 from ezlmm import LinearMixedModel, GeneralizedLinearMixedModel
 ```

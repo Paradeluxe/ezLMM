@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri, Formula, numpy2ri
-# from rpy2.robjects.conversion import localconverter
 from rpy2.robjects.packages import importr
 
 # print(__name__)
@@ -25,6 +24,7 @@ nlme = importr("nlme")
 def r2p(r_obj):
     with (ro.default_converter + pandas2ri.converter + numpy2ri.converter).context():
         return ro.conversion.get_conversion().rpy2py(r_obj)
+
 
 def p2r(p_obj):
     with (ro.default_converter + pandas2ri.converter).context():
@@ -56,8 +56,6 @@ def extract_contrast(contrast_str, factor_num=1):
         s += i+1
 
     return contrast_dicts
-
-
 
 
 class LinearMixedModel:
@@ -394,7 +392,7 @@ class LinearMixedModel:
 
 class GeneralizedLinearMixedModel:
 
-    def __init__(self):
+    def __init__(self, family):
         self.path = None
         self.report = None
         self.formula = None
@@ -410,6 +408,13 @@ class GeneralizedLinearMixedModel:
         # Generate report
         self.trans_dict = {}
         self.delete_random_item = []
+
+        # Select family
+        if family is None:
+            family = "binomial"
+
+        self.family = family
+
 
     def read_data(self, path):
         """
@@ -529,7 +534,7 @@ class GeneralizedLinearMixedModel:
             print(f"\r[*] Runing FORMULA -> {formula_str}", end="")
 
             if not optimizer:
-                model1 = lme4.glmer(formula, family="binomial", data=r_data)
+                model1 = lme4.glmer(formula, family=self.family, data=r_data)
 
             else:
                 list_optCtrl = ro.ListVector([("maxfun", optimizer[1])])
