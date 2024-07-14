@@ -263,15 +263,25 @@ class LinearMixedModel:
 
                 rf2ex = df.loc[df[2].idxmin(0)][0]
                 ff2ex = df.loc[df[2].idxmin(0)][1]
-
+                # print(df)
                 self.delete_random_item.append(f"{ff2ex} | {rf2ex}")
 
                 # Processing EXCLUSION
                 for ff2ex_item in random_model[rf2ex]:
-                    if sorted(ff2ex_item.split(":")) == sorted(ff2ex.split(":")):
+                    # print(ff2ex_item, sorted(ff2ex_item.split(":")), sorted(ff2ex.split(":")))
+                    target_items = sorted(ff2ex.split(":"))
+                    this_items = sorted(ff2ex_item.split(":"))
+                    # print(target_items, this_items)
+                    # print(target_items[1][:len(this_items[1])])
+
+                    if not len(target_items) == len(this_items):
+                        continue
+                    # Exclude lvl str, retain only var name
+                    target_items = [target_items[target_index][:len(this_items[target_index])] for target_index in range(len(target_items))]
+
+                    if this_items == target_items:
                         random_model[rf2ex].remove(ff2ex_item)
                 # print(random_model)
-
             # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
             # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
         print("Looking for main effect(s)/interaction(s)...")
@@ -609,7 +619,19 @@ class GeneralizedLinearMixedModel:
 
                 # Processing EXCLUSION
                 for ff2ex_item in random_model[rf2ex]:
-                    if sorted(ff2ex_item.split(":")) == sorted(ff2ex.split(":")):
+                    # print(ff2ex_item, sorted(ff2ex_item.split(":")), sorted(ff2ex.split(":")))
+                    target_items = sorted(ff2ex.split(":"))
+                    this_items = sorted(ff2ex_item.split(":"))
+                    # print(target_items, this_items)
+                    # print(target_items[1][:len(this_items[1])])
+
+                    if not len(target_items) == len(this_items):
+                        continue
+                    # Exclude lvl str, retain only var name
+                    target_items = [target_items[target_index][:len(this_items[target_index])] for target_index in
+                                    range(len(target_items))]
+
+                    if this_items == target_items:
                         random_model[rf2ex].remove(ff2ex_item)
 
         self.summary = summary_model1_r
