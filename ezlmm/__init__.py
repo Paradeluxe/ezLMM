@@ -20,14 +20,14 @@ if __name__ == "__main__":
     #
     # # Define your variables
     # glmm.dep_var = "acc"
-    # glmm.indep_var = ["syllable_number", "priming_effect", "speech_isochrony"]
-    # glmm.random_var = ["subject", "word"]
+    # glmm.indep_var = ["syllable_number", "priming_effect"]
+    # glmm.random_var = ["subject"]
     #
     # # [optional] Code your variables
     # glmm.code_variables({
-    #     "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
-    #     "speech_isochrony": {"averaged": -0.5, "original": 0.5},
-    #     "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
+    #     # "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
+    #     # "speech_isochrony": {"averaged": -0.5, "original": 0.5},
+    #     # "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
     # })
     #
     # # Process your data
@@ -46,11 +46,11 @@ if __name__ == "__main__":
     lmm = LinearMixedModel()  # or you can import it as LMM(), lmm(), or anything you like
 
     # Write in path
-    lmm.read_data(r"C:\Users\18357\Desktop\data.csv")
+    lmm.read_data(r"C:\Users\18357\Desktop\linguistic_rhythm\data.csv")
 
     # Define your variables
     lmm.dep_var = "rt"
-    lmm.indep_var = ["Pi_Rep", "Po_Rep", "Pi_con"]
+    lmm.indep_var = ["syllable_number", "priming_effect"]
     lmm.random_var = ["subject"]
 
     # Process your data
@@ -63,16 +63,16 @@ if __name__ == "__main__":
 
     # [optional] Code your variables (coded var will start with 't', e.g., "name" -> "Tname")
     lmm.code_variables({
-        # "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
-        # "speech_isochrony": {"averaged": -0.5, "original": 0.5},
-        # "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
+        "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
+        "speech_isochrony": {"averaged": -0.5, "original": 0.5},
+        "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
     })
 
 
 
 
     # Fitting the model until it is converged
-    lmm.fit()#optimizer=["bobyqa", 20000])#, prev_formula="rt ~ syllable_number * priming_effect * speech_isochrony + (1 + speech_isochrony | subject) + (1 | word)")
+    lmm.fit(optimizer=["bobyqa", 20000])#, prev_formula="rt ~ syllable_number * priming_effect * speech_isochrony + (1 + speech_isochrony | subject) + (1 | word)")
 
     # Print report
     print(lmm.report)
