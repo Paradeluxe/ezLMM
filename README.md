@@ -216,9 +216,9 @@ would be conducted leveraging [emmeans package (Lenth, 2024)](https://cran.r-pro
 I am a Psychology/NeuroScience student currently doing my Master program. My area is Psycholinguistics.
 That is to say, I am not a professional in terms of neither statistics nor machine learning.
 I wrote a lot of scripts for my own research as well as my colleagues'. 
-So this is kind of my first Python package (lol I don't even quite understand how to use *pull request*)
+So this is kind of my first Python package (lol I don't even quite understand how to use GitHub's *pull request*)
 
-Anyway, feel free to reach out to me at `paradeluxe3726@gmail.com` or `zhengyuan.liu@connect.um.edu.mo`!
+Feel free to reach out to me at `paradeluxe3726@gmail.com` or `zhengyuan.liu@connect.um.edu.mo`!
 
 
 
