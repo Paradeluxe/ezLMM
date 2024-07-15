@@ -83,7 +83,7 @@ glmm = GeneralizedLinearMixedModel()
 
 ### Read data (.csv only)
 ```python
-lmm.read_data("data_path.csv")  # Change with your own data path
+lmm.read_data("data.csv")  # Change with your own data path
 ```
 
 ### Define your variables (i.e., colname in data file)
