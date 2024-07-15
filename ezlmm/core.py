@@ -23,15 +23,13 @@ nlme = importr("nlme")
 
 
 
-
-
 def r2p(r_obj):
     with (ro.default_converter + pandas2ri.converter + numpy2ri.converter).context():
         return ro.conversion.get_conversion().rpy2py(r_obj)
 
 
 def p2r(p_obj):
-    with (ro.default_converter + pandas2ri.converter).context():
+    with (ro.default_converter + pandas2ri.converter + numpy2ri.converter).context():
         return ro.conversion.get_conversion().py2rpy(p_obj)
 
 
@@ -92,7 +90,6 @@ class LinearMixedModel:
         :return: None
         """
 
-
         print("Reading Data...", end="")
         # Read .csv self.data (it can accept formats like .xlsx, just change pd.read_XXX)
         self.data = pd.read_csv(path, encoding="utf-8")
@@ -100,12 +97,14 @@ class LinearMixedModel:
 
         return None
 
-    def code_variables(self, code):
+    def code_variables(self, code=None):
         """
         Change the values in each column with certain coding methods (customization)
         :param code: coding dict
         :return: None
         """
+        if code is None:
+            code = {}
 
         print("Coding variables...", end="")
         if not code:
