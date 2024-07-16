@@ -70,6 +70,7 @@ class LinearMixedModel:
         self.path = None
         self.report = None
         self.formula = None
+        self.data = None
 
         # Data exclusion
         self.isExcludeSD = True
@@ -271,12 +272,13 @@ class LinearMixedModel:
 
         return final_rpt
 
-    def fit(self, optimizer=[], prev_formula=""):
+    def fit(self, optimizer=None, prev_formula=""):
+
+        if optimizer is None:
+            optimizer = []
 
         dep_var = self.dep_var
         fixed_factor = self.indep_var
-
-
         random_factor = self.random_var
 
 
@@ -324,9 +326,7 @@ class LinearMixedModel:
                 list_optCtrl = ro.ListVector([("maxfun", optimizer[1])])
                 model1 = lmerTest.lmer(formula, REML=True, data=r_data, control=lme4.lmerControl(optimizer=optimizer[0], optCtrl=list_optCtrl))
 
-
             summary_model1_r = Matrix.summary(model1)
-
             summary_model1 = r2p(summary_model1_r)
 
             try:
@@ -416,11 +416,7 @@ class LinearMixedModel:
         self.summary = summary_model1
         self.anova = r2p(stats.anova(model1, type=3, ddf="Kenward-Roger"))
 
-
-
         print("Generating Reports...", end="")
-
-
 
         if isGoodModel:
             self.formula = formula_str
@@ -429,13 +425,14 @@ class LinearMixedModel:
 
         print("Completed")
 
+
 class GeneralizedLinearMixedModel:
 
     def __init__(self):
         self.path = None
         self.report = None
         self.formula = None
-
+        self.data = None
         # Data exclusion
         self.isExcludeSD = True
 
