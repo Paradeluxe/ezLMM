@@ -272,7 +272,7 @@ class LinearMixedModel:
 
         return final_rpt
 
-    def fit(self, optimizer=None, prev_formula=""):
+    def fit(self, optimizer=None, prev_formula="", report=True):
 
         if optimizer is None:
             optimizer = []
@@ -415,6 +415,10 @@ class LinearMixedModel:
         self.summary_r = summary_model1_r
         self.summary = summary_model1
         self.anova = r2p(stats.anova(model1, type=3, ddf="Kenward-Roger"))
+
+
+        if not report:
+            return None
 
         print("Generating Reports...", end="")
 
@@ -638,8 +642,10 @@ class GeneralizedLinearMixedModel:
 
         return final_rpt
 
-    def fit(self, optimizer=[], prev_formula="", family=None):
+    def fit(self, optimizer=None, prev_formula="", family=None, report=True):
         # Select family
+        if optimizer is None:
+            optimizer = []
         if family is None:
             family = "binomial"
 
@@ -779,10 +785,6 @@ class GeneralizedLinearMixedModel:
                     if this_items == target_items:
                         random_model[rf2ex].remove(ff2ex_item)
 
-        self.summary = summary_model1_r
-        anova_model1 = r2p(car.Anova(model1, type=3, test="Chisq"))
-        self.anova = anova_model1
-
         print("Looking for main effect(s)/interaction(s)...")
 
         self.model_r = model1
@@ -790,7 +792,8 @@ class GeneralizedLinearMixedModel:
         self.summary = summary_model1
         self.anova = r2p(car.Anova(model1, type=3, test="Chisq"))
 
-
+        if not report:
+            return None
 
         print("Generating Reports...", end="")
 
