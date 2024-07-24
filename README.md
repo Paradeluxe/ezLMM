@@ -1,10 +1,14 @@
 # ezLMM: Python interface of Linear Mixed Model analysis in R language
 
-## Before installation
+## What's it for?
+
+For those who want to use LMM to construct a 3-way (or more) model and refit in a full-to-null order.
+
+
+## Installation
 
 Make sure you have downloaded [R interpreter](https://www.r-project.org/) in your system and add it to PATH.
 
-## Install package
 ```bash
 pip install ezlmm
 ```

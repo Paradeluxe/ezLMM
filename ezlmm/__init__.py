@@ -20,8 +20,8 @@ if __name__ == "__main__":
 
     # Define your variables
     glmm.dep_var = "acc"
-    glmm.indep_var = ["syllable_number", "priming_effect"]#, "speech_isochrony"]
-    glmm.random_var = ["subject"]#, "word"]
+    glmm.indep_var = ["syllable_number", "priming_effect", "speech_isochrony"]
+    glmm.random_var = ["subject", "word"]
 
     # [optional] Code your variables
     glmm.code_variables({
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     print(glmm.report)
     print(glmm.anova)
 
-    exit()
+    # exit()
 
 
 

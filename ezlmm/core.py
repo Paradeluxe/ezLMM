@@ -1,5 +1,7 @@
 import itertools
 import logging
+import os
+from functools import wraps
 
 import numpy as np
 import pandas as pd
@@ -21,6 +23,22 @@ car = importr('car')
 nlme = importr("nlme")
 
 
+def toggle_print(enable):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            if not enable:
+                with open(os.devnull, 'w') as devnull:
+                    import sys
+                    old_stdout = sys.stdout
+                    sys.stdout = devnull
+                    result = func(*args, **kwargs)
+                    sys.stdout = old_stdout
+            else:
+                result = func(*args, **kwargs)
+            return result
+        return wrapper
+    return decorator
 
 
 def r2p(r_obj):
@@ -83,6 +101,9 @@ class LinearMixedModel:
         # Generate report
         self.trans_dict = {}
         self.delete_random_item = []
+
+        # If print output
+        self.is_output = True
 
     def read_data(self, path):
         """
@@ -261,12 +282,9 @@ class LinearMixedModel:
                 # print(f"Main effect {sig_items}")
                 final_rpt += f"The main effect of {sig_items[0]} was not significant {write_main(df_item)}. "
 
-            elif len(sig_items) == 2:
-                # print(f"2-way Interaction {sig_items}")
-                final_rpt += f"The interaction between {' and '.join(sig_items)} was not significant {write_main(df_item)}. "
-            elif len(sig_items) >= 3:
+            elif len(sig_items) >= 2:
                 # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
-                final_rpt += f"The interaction between {sig_items[0]}, {' and '.join(sig_items[1:])} was not significant {write_main(df_item)}. "
+                final_rpt += f"The interaction between {', '.join(sig_items[:-1])} and {sig_items[-1]} was not significant {write_main(df_item)}. "
 
         final_rpt = final_rpt.replace("=0.000", "<0.001")
 
@@ -317,14 +335,14 @@ class LinearMixedModel:
             random_str = random_str.rstrip(" + ")
 
             formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
-            formula = Formula(formula_str)
+
             print(f"\r[*] Running FORMULA -> {formula_str}", end="")
 
             if not optimizer:
-                model1 = lmerTest.lmer(formula, REML=True, data=r_data)
+                model1 = lmerTest.lmer(Formula(formula_str), REML=True, data=r_data)
             else:
                 list_optCtrl = ro.ListVector([("maxfun", optimizer[1])])
-                model1 = lmerTest.lmer(formula, REML=True, data=r_data, control=lme4.lmerControl(optimizer=optimizer[0], optCtrl=list_optCtrl))
+                model1 = lmerTest.lmer(Formula(formula_str), REML=True, data=r_data, control=lme4.lmerControl(optimizer=optimizer[0], optCtrl=list_optCtrl))
 
             summary_model1_r = Matrix.summary(model1)
             summary_model1 = r2p(summary_model1_r)
@@ -416,7 +434,7 @@ class LinearMixedModel:
         self.summary = summary_model1
         self.anova = r2p(stats.anova(model1, type=3, ddf="Kenward-Roger"))
 
-
+        print("Found!")
         if not report:
             return None
 
@@ -449,6 +467,8 @@ class GeneralizedLinearMixedModel:
         self.trans_dict = {}
         self.delete_random_item = []
 
+        # If print output
+        self.is_output = True
 
 
 
@@ -631,17 +651,15 @@ class GeneralizedLinearMixedModel:
                 # print(f"Main effect {sig_items}")
                 final_rpt += f"The main effect of {sig_items[0]} was not significant {write_main(df_item)}. "
 
-            elif len(sig_items) == 2:
-                # print(f"2-way Interaction {sig_items}")
-                final_rpt += f"The interaction between {' and '.join(sig_items)} was not significant {write_main(df_item)}. "
-            elif len(sig_items) >= 3:
+            elif len(sig_items) >= 2:
                 # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
-                final_rpt += f"The interaction between {sig_items[0]}, {' and '.join(sig_items[1:])} was not significant {write_main(df_item)}. "
+                final_rpt += f"The interaction between {', '.join(sig_items[:-1])} and {sig_items[-1]} was not significant {write_main(df_item)}. "
 
         final_rpt = final_rpt.replace("=0.000", "<0.001")
 
         return final_rpt
 
+    # @toggle_print(enable=self.is_output)
     def fit(self, optimizer=None, prev_formula="", family=None, report=True):
         # Select family
         if optimizer is None:
@@ -654,6 +672,8 @@ class GeneralizedLinearMixedModel:
         dep_var = self.dep_var
         fixed_factor = self.indep_var
         random_factor = self.random_var
+
+
 
 
         fixed_str = " * ".join(fixed_factor)
@@ -691,16 +711,15 @@ class GeneralizedLinearMixedModel:
             random_str = random_str.rstrip(" + ")
 
             formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
-            formula = Formula(formula_str)
             print(f"\r[*] Runing FORMULA -> {formula_str}", end="")
 
             if not optimizer:
-                model1 = lme4.glmer(formula, family=self.family, data=r_data)
+                model1 = lme4.glmer(Formula(formula_str), family=self.family, data=r_data)
 
             else:
                 list_optCtrl = ro.ListVector([("maxfun", optimizer[1])])
 
-                model1 = lmerTest.lmer(formula, REML=True, data=r_data, control=lme4.lmerControl(optimizer=optimizer[0], optCtrl=list_optCtrl))
+                model1 = lme4.glmer(Formula(formula_str), data=r_data, control=lme4.lmerControl(optimizer=optimizer[0], optCtrl=list_optCtrl))
 
             summary_model1_r = Matrix.summary(model1)
 
@@ -791,6 +810,7 @@ class GeneralizedLinearMixedModel:
         self.summary_r = summary_model1_r
         self.summary = summary_model1
         self.anova = r2p(car.Anova(model1, type=3, test="Chisq"))
+        print("Found!")
 
         if not report:
             return None
