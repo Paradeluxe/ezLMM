@@ -2,7 +2,7 @@
 
 ## What's it for?
 
-For those who want to use LMM to construct a 3-way (or more) model and refit in a full-to-null order.
+For those who want to use LMM to construct a full fixed model and refit random model in a full-to-null order.
 
 > [!NOTE]  
 > *ezLMM* currently supports **auto reports** on simple effect analysis of 2-way interaction. 
