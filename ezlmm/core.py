@@ -295,6 +295,12 @@ class LinearMixedModel:
                 final_rpt = final_rpt[:-2] + ". "
 
             elif len(sig_items) >= 3:
+
+                # print(f"2-way Interaction {sig_items}")
+                final_rpt += (
+                    f"The interaction among between {', '.join(sig_items[:-1])} and {sig_items[-1]} "
+                    f"was significant {write_main(df_item)}. ")
+
                 final_rpt += (f"[Not yet ready for simple simple effect analysis ({', '.join(sig_items)}). "
                               f"Please construct individual models by subsetting your data.]")
                 # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
@@ -311,7 +317,7 @@ class LinearMixedModel:
 
             elif len(sig_items) >= 2:
                 # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
-                final_rpt += f"The interaction between {', '.join(sig_items[:-1])} and {sig_items[-1]} was not significant {write_main(df_item)}. "
+                final_rpt += f"The interaction {'among' if len(sig_items) > 2 else 'between'} {', '.join(sig_items[:-1])} and {sig_items[-1]} was not significant {write_main(df_item)}. "
 
         final_rpt = final_rpt.replace("=0.000", "<0.001")
 
@@ -665,6 +671,10 @@ class GeneralizedLinearMixedModel:
                 final_rpt = final_rpt[:-2] + ". "
 
             elif len(sig_items) >= 3:
+                final_rpt += (
+                    f"The interaction among between {', '.join(sig_items[:-1])} and {sig_items[-1]} "
+                    f"was significant {write_main(df_item)}. ")
+
                 final_rpt += (f"[Not yet ready for simple simple effect analysis ({', '.join(sig_items)}). "
                               f"Please construct individual models by subsetting your data.]")
                 # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
@@ -681,7 +691,8 @@ class GeneralizedLinearMixedModel:
 
             elif len(sig_items) >= 2:
                 # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
-                final_rpt += f"The interaction between {', '.join(sig_items[:-1])} and {sig_items[-1]} was not significant {write_main(df_item)}. "
+                final_rpt += (f"The interaction {'among' if len(sig_items) > 2 else 'between'} "
+                              f"{', '.join(sig_items[:-1])} and {sig_items[-1]} was not significant {write_main(df_item)}. ")
 
         final_rpt = final_rpt.replace("=0.000", "<0.001")
 
