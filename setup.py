@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='ezlmm',
-    version='0.3.4',
+    version='0.4.0',
     packages=find_packages(),
     install_requires=['numpy>=1.26.4', 'pandas>=2.2.2', 'rpy2>=3.5.16'],
     authors=[{"name": 'Paradeluxe', "email": "paradeluxe3726@gmail.com"}],

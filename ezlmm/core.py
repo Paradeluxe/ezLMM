@@ -177,6 +177,32 @@ class LinearMixedModel:
 
         return None
 
+    def descriptive_stats(self):
+        if not self.dep_var and not self.indep_var:
+            raise ValueError("Not yet decided independent/dependent variables")
+        else:
+            df_des = pd.DataFrame()
+            conds = [self.data[id_var].unique().tolist() for id_var in self.indep_var]
+            for cond in itertools.product(*conds):  # Go through every condition
+                sub_df = self.data
+                for col, val in dict(zip(self.indep_var, cond)).items():
+                    sub_df = sub_df[(sub_df[col] == val)]
+                sub_df_des = sub_df.describe()[self.dep_var].T
+                for col, val in dict(zip(self.indep_var, cond)).items():
+                    sub_df_des[col] = val
+                sub_df_des = sub_df_des.reset_index().T
+
+                sub_df_des.columns = sub_df_des.iloc[0]
+
+                sub_df_des = sub_df_des[1:]
+                # sub_df_des.rename(columns={'index': sub_df_des.index.name})#, inplace=True)
+                df_des = pd.concat([df_des, sub_df_des], ignore_index=True)
+            # df_des = df_des.reset_index(drop=True)
+            # print(df_des)
+
+            return df_des
+
+
     def write_simple_effect(self,
                             dep_var: str,
                             trans_dict: dict,
@@ -427,7 +453,7 @@ class LinearMixedModel:
                 # print(random_model)
             # ('methTitle', 'objClass', 'devcomp', 'isLmer', 'useScale', 'logLik', 'family', 'link', 'ngrps', 'coefficients', 'sigma', 'vcov', 'varcor', 'AICtab', 'call', 'residuals', 'fitMsgs', 'optinfo', 'corrSet')
             # ('optimizer', 'control', 'derivs', 'conv', 'feval', 'message', 'warnings', 'val')
-        print("Looking for main effect(s)/interaction(s)...")
+        print("Looking for main effect(s)/interaction(s)...", end="")
 
         self.model_r = model1
         self.summary_r = summary_model1_r
@@ -659,7 +685,32 @@ class GeneralizedLinearMixedModel:
 
         return final_rpt
 
-    # @toggle_print(enable=self.is_output)
+
+    def descriptive_stats(self):
+        if not self.dep_var and not self.indep_var:
+            raise ValueError("Not yet decided independent/dependent variables")
+        else:
+            df_des = pd.DataFrame()
+            conds = [self.data[id_var].unique().tolist() for id_var in self.indep_var]
+            for cond in itertools.product(*conds):  # Go through every condition
+                sub_df = self.data
+                for col, val in dict(zip(self.indep_var, cond)).items():
+                    sub_df = sub_df[(sub_df[col] == val)]
+                sub_df_des = sub_df.describe()[self.dep_var].T
+                for col, val in dict(zip(self.indep_var, cond)).items():
+                    sub_df_des[col] = val
+                sub_df_des = sub_df_des.reset_index().T
+
+                sub_df_des.columns = sub_df_des.iloc[0]
+
+                sub_df_des = sub_df_des[1:]
+                # sub_df_des.rename(columns={'index': sub_df_des.index.name})#, inplace=True)
+                df_des = pd.concat([df_des, sub_df_des], ignore_index=True)
+            # df_des = df_des.reset_index(drop=True)
+            # print(df_des)
+
+            return df_des
+
     def fit(self, optimizer=None, prev_formula="", family=None, report=True):
         # Select family
         if optimizer is None:
@@ -804,7 +855,7 @@ class GeneralizedLinearMixedModel:
                     if this_items == target_items:
                         random_model[rf2ex].remove(ff2ex_item)
 
-        print("Looking for main effect(s)/interaction(s)...")
+        print("Looking for main effect(s)/interaction(s)...", end="")
 
         self.model_r = model1
         self.summary_r = summary_model1_r

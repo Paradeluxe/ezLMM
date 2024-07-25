@@ -42,6 +42,9 @@ lmm.code_variables({
     "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
 })
 
+# Doing descriptive statistics (right before .fit())
+descriptive_stats = lmm.descriptive_stats()
+print(descriptive_stats)
 
 # Fitting the model until it is converged
 lmm.fit()
@@ -132,6 +135,11 @@ In case you do not want to code these variables, use this instead:
 lmm.code_variables()  # or lmm.code_variables({})
 ```
 
+### Descriptive statistics right before fitting
+```python
+descriptive_stats = lmm.descriptive_stats()
+print(descriptive_stats)
+```
 
 ### Finally, try fitting the model
 

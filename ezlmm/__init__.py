@@ -23,6 +23,9 @@ if __name__ == "__main__":
     glmm.indep_var = ["syllable_number", "priming_effect", "speech_isochrony"]
     glmm.random_var = ["subject", "word"]
 
+    descriptive_stats = glmm.descriptive_stats()
+    print(descriptive_stats)
+
     # [optional] Code your variables
     glmm.code_variables({
         "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
