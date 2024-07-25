@@ -20,7 +20,8 @@ For those who want to use LMM to construct a full fixed model and refit random m
 > c1 -> a * b
 > c2 -> a * b
 > ```
-> [Subset](#optional-select-only-the-correctly-responded-answers) your data, construct new models on each of them, and replace the "[XXX]" with new results.
+> [Subset](#optional-select-only-the-correctly-responded-answers) your data, construct new models on each of them, and
+> replace the "[XXX]" with individual results.
 
 
 ## Installation
