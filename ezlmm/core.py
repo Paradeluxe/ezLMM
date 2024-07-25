@@ -295,7 +295,8 @@ class LinearMixedModel:
                 final_rpt = final_rpt[:-2] + ". "
 
             elif len(sig_items) >= 3:
-                final_rpt += "[Not yet ready for 3-way analysis, write it on ur own plz]"
+                final_rpt += (f"[Not yet ready for simple simple effect analysis ({', '.join(sig_items)}). "
+                              f"Please construct individual models by subsetting your data.]")
                 # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
 
         for sig_items in df_anova[df_anova[main_test] > 0.05].index.tolist():
@@ -664,7 +665,8 @@ class GeneralizedLinearMixedModel:
                 final_rpt = final_rpt[:-2] + ". "
 
             elif len(sig_items) >= 3:
-                final_rpt += "[Not yet ready for 3-way analysis, write it on ur own plz]"
+                final_rpt += (f"[Not yet ready for simple simple effect analysis ({', '.join(sig_items)}). "
+                              f"Please construct individual models by subsetting your data.]")
                 # print(f"3-way Interaction {sig_items} (under construction, use R for 3-way simple effect analysis please)")
 
         for sig_items in df_anova[df_anova[main_test] > 0.05].index.tolist():

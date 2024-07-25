@@ -20,7 +20,7 @@ For those who want to use LMM to construct a 3-way (or more) model and refit in 
 > c1 -> a * b
 > c2 -> a * b
 > ```
-> Construct models on each of them, and report to your needs.
+> [Subset](#optional-select-only-the-correctly-responded-answers) your data, construct new models on each of them, and replace the "[XXX]" with new results.
 
 
 ## Installation
@@ -133,9 +133,14 @@ lmm.exclude_trial_SD(target="rt", subject="subject", SD=2.5)
 ```
 
 ### [optional] Select only the correctly responded answers
-I use pandas here, so you can edit it in the pandas way
+I use pandas here, so you could edit it in the pandas way
 ```python
 lmm.data = lmm.data[lmm.data['acc'] == 1]
+```
+
+Subsetting your data would be the same here. For example,
+```python
+lmm.data = lmm.data[lmm.data['syllable'] == "disyllabic"]  # df = df[df[colname] == value]
 ```
 
 ### [optional] Code your variable(s)
