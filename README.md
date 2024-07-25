@@ -4,6 +4,24 @@
 
 For those who want to use LMM to construct a 3-way (or more) model and refit in a full-to-null order.
 
+> [!NOTE]  
+> *ezLMM* currently supports **auto reports** on simple effect analysis of 2-way interaction. 
+> 
+> If you ever find significance in 3-way or more interactions, the report should come up with a blank space: 
+> `[Not yet ready for simple simple effect analysis (interaction item). Construct individual models by subsetting your data.]`
+> 
+> For example, if you find a significant 3-way interaction with a model of 3 fixed factors (like 
+> `2 * 2 * 2`), you then have 6 models to run:
+> ```
+> a1 -> b * c
+> a2 -> b * c
+> b1 -> a * c
+> b2 -> a * c
+> c1 -> a * b
+> c2 -> a * b
+> ```
+> Construct models on each of them, and report to your needs.
+
 
 ## Installation
 
