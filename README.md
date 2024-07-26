@@ -1,4 +1,7 @@
 # ezLMM: Python interface of Linear Mixed Model analysis in R language
+[![PyPI Downloads](https://img.shields.io/pypi/dm/ezlmm.svg?label=PyPI%20downloads)](
+https://pypi.org/project/ezlmm/)
+[![GitHub license](https://img.shields.io/github/license/Paradeluxe/ezlmm)](https://github.com/Paradeluxe/ezlmm)
 
 ## What's it for?
 

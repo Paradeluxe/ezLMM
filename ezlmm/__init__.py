@@ -25,6 +25,7 @@ if __name__ == "__main__":
 
     descriptive_stats = glmm.descriptive_stats()
     print(descriptive_stats)
+    descriptive_stats.to_excel(r"C:\Users\18357\Desktop\output.xlsx", index=False)
     exit()
     # [optional] Code your variables
     glmm.code_variables({
