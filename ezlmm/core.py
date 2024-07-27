@@ -1,9 +1,8 @@
 import itertools
 import logging
-import os
-from functools import wraps
 
 import numpy as np
+import pandas
 import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri, Formula, numpy2ri
@@ -23,24 +22,6 @@ car = importr('car')
 nlme = importr("nlme")
 
 
-def toggle_print(enable):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if not enable:
-                with open(os.devnull, 'w') as devnull:
-                    import sys
-                    old_stdout = sys.stdout
-                    sys.stdout = devnull
-                    result = func(*args, **kwargs)
-                    sys.stdout = old_stdout
-            else:
-                result = func(*args, **kwargs)
-            return result
-        return wrapper
-    return decorator
-
-
 def r2p(r_obj):
     with (ro.default_converter + pandas2ri.converter + numpy2ri.converter).context():
         return ro.conversion.get_conversion().rpy2py(r_obj)
@@ -51,8 +32,37 @@ def p2r(p_obj):
         return ro.conversion.get_conversion().py2rpy(p_obj)
 
 
-def extract_contrast(contrast_str, factor_num=1):
+def read_data(path: str, encoding="utf-8"):
+    """
+    Read data into DataFrame format
+    :param path: Data file path (e.g., .csv, .xlsx)
+    :param encoding: Default at "utf-8"
+    :return: pandas.DataFrame
+    """
 
+    # read_file(path):
+    extension = path.split('.')[-1].lower()
+    if extension in ['csv', 'tsv']:
+        return pd.read_csv(path, encoding=encoding)
+    elif extension == 'xlsx':
+        return pd.read_excel(path)
+    elif extension == 'json':
+        return pd.read_json(path, encoding=encoding)
+    elif extension == 'hdf':
+        return pd.read_hdf(path, encoding=encoding)
+    elif extension == 'xml':
+        return pd.read_xml(path, encoding=encoding)
+    else:
+        raise ValueError(f"\n\nUnsupported file extension: {extension}")
+
+
+def extract_contrast(contrast_str, factor_num=1) -> dict:
+    """
+    Convert string-format table emmeans results into dict-format
+    :param contrast_str: string format emmeans results
+    :param factor_num: 1 for main effect, 2 for two-way interaction
+    :return: dict containing post hoc/simple effect results
+    """
     raw_contrast = contrast_str.strip().split("\n")
     contrast_dicts = []
 
@@ -77,7 +87,6 @@ def extract_contrast(contrast_str, factor_num=1):
 
         contrast_dicts.append(contrast_dict)
         s += i+1
-
 
     return contrast_dicts
 
@@ -105,16 +114,18 @@ class LinearMixedModel:
         # If print output
         self.is_output = True
 
-    def read_data(self, path):
+    def read_data(self, path, encoding="utf-8") -> None:
         """
-        Read data from the data path
-        :param path: data file path
+        Read data into DataFrame format
+        :param path: Data file path (e.g., .csv, .xlsx)
+        :param encoding: Default at "utf-8"
         :return: None
         """
 
         print("Reading Data...", end="")
-        # Read .csv self.data (it can accept formats like .xlsx, just change pd.read_XXX)
-        self.data = pd.read_csv(path, encoding="utf-8")
+        # read_file(path):
+        self.data = read_data(path, encoding)
+        # self.data = pd.read_csv(path, encoding="utf-8")
         print("Data collected!")
 
         return None
@@ -180,27 +191,29 @@ class LinearMixedModel:
     def descriptive_stats(self):
         if not self.dep_var and not self.indep_var:
             raise ValueError("Not yet decided independent/dependent variables")
-        else:
-            df_des = pd.DataFrame()
-            conds = [self.data[id_var].unique().tolist() for id_var in self.indep_var]
-            for cond in itertools.product(*conds):  # Go through every condition
-                sub_df = self.data
-                for col, val in dict(zip(self.indep_var, cond)).items():
-                    sub_df = sub_df[(sub_df[col] == val)]
-                sub_df_des = sub_df.describe()[self.dep_var].T
-                for col, val in dict(zip(self.indep_var, cond)).items():
-                    sub_df_des[col] = val
-                sub_df_des = sub_df_des.reset_index().T
 
-                sub_df_des.columns = sub_df_des.iloc[0]
+        df_des = pd.DataFrame()
+        conds = [self.data[id_var].unique().tolist() for id_var in self.indep_var]
+        for cond in itertools.product(*conds):  # Go through every condition
+            sub_df = self.data
+            for col, val in dict(zip(self.indep_var, cond)).items():
+                sub_df = sub_df[(sub_df[col] == val)]
+            sub_df_des = sub_df.describe()[self.dep_var].T
+            for col, val in dict(zip(self.indep_var, cond)).items():
+                sub_df_des[col] = val
+            sub_df_des = sub_df_des.reset_index().T
 
-                sub_df_des = sub_df_des[1:]
-                # sub_df_des.rename(columns={'index': sub_df_des.index.name})#, inplace=True)
-                df_des = pd.concat([df_des, sub_df_des], ignore_index=True)
-            # df_des = df_des.reset_index(drop=True)
-            # print(df_des)
+            sub_df_des.columns = sub_df_des.iloc[0]
 
-            return df_des
+            sub_df_des = sub_df_des[1:]
+            # sub_df_des.rename(columns={'index': sub_df_des.index.name})#, inplace=True)
+            df_des = pd.concat([df_des, sub_df_des], ignore_index=True)
+        # df_des = df_des.reset_index(drop=True)
+        # print(df_des)
+        # Combine mean and std
+
+        df_des[self.dep_var] = df_des.apply(lambda row: f"{row['mean']:.3f} ({row['std']:.3f})", axis=1)
+        return df_des
 
 
     def write_simple_effect(self,
@@ -699,31 +712,32 @@ class GeneralizedLinearMixedModel:
 
         return final_rpt
 
-
     def descriptive_stats(self):
         if not self.dep_var and not self.indep_var:
             raise ValueError("Not yet decided independent/dependent variables")
-        else:
-            df_des = pd.DataFrame()
-            conds = [self.data[id_var].unique().tolist() for id_var in self.indep_var]
-            for cond in itertools.product(*conds):  # Go through every condition
-                sub_df = self.data
-                for col, val in dict(zip(self.indep_var, cond)).items():
-                    sub_df = sub_df[(sub_df[col] == val)]
-                sub_df_des = sub_df.describe()[self.dep_var].T
-                for col, val in dict(zip(self.indep_var, cond)).items():
-                    sub_df_des[col] = val
-                sub_df_des = sub_df_des.reset_index().T
 
-                sub_df_des.columns = sub_df_des.iloc[0]
+        df_des = pd.DataFrame()
+        conds = [self.data[id_var].unique().tolist() for id_var in self.indep_var]
+        for cond in itertools.product(*conds):  # Go through every condition
+            sub_df = self.data
+            for col, val in dict(zip(self.indep_var, cond)).items():
+                sub_df = sub_df[(sub_df[col] == val)]
+            sub_df_des = sub_df.describe()[self.dep_var].T
+            for col, val in dict(zip(self.indep_var, cond)).items():
+                sub_df_des[col] = val
+            sub_df_des = sub_df_des.reset_index().T
 
-                sub_df_des = sub_df_des[1:]
-                # sub_df_des.rename(columns={'index': sub_df_des.index.name})#, inplace=True)
-                df_des = pd.concat([df_des, sub_df_des], ignore_index=True)
-            # df_des = df_des.reset_index(drop=True)
-            # print(df_des)
+            sub_df_des.columns = sub_df_des.iloc[0]
 
-            return df_des
+            sub_df_des = sub_df_des[1:]
+            # sub_df_des.rename(columns={'index': sub_df_des.index.name})#, inplace=True)
+            df_des = pd.concat([df_des, sub_df_des], ignore_index=True)
+        # df_des = df_des.reset_index(drop=True)
+        # print(df_des)
+        # Combine mean and std
+
+        df_des[self.dep_var] = df_des.apply(lambda row: f"{row['mean']:.3f} ({row['std']:.3f})", axis=1)
+        return df_des
 
     def fit(self, optimizer=None, prev_formula="", family=None, report=True):
         # Select family

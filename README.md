@@ -38,7 +38,7 @@ pip install ezlmm
 # How to use this package
 
 > [!TIP]
-> ** Example: LMM on Reaction Time **
+> **Example: LMM on Reaction Time**
 > ```python
 > from ezlmm import LinearMixedModel, GeneralizedLinearMixedModel
 > 
@@ -58,18 +58,21 @@ pip install ezlmm
 > 
 > 
 > # [Optional]
+> # --------------------
 > lmm.exclude_trial_SD(target="rt", subject="subject", SD=2.5)
 > lmm.data = lmm.data[lmm.data['acc'] == 1]
 > 
-> # Doing descriptive statistics (right before .fit())
+> # Descriptive statistics
 > descriptive_stats = lmm.descriptive_stats()
 > print(descriptive_stats)
 > 
+> # Code your variables right before fitting
 > lmm.code_variables({
 >     "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
 >     "speech_isochrony": {"averaged": -0.5, "original": 0.5},
 >     "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
 > })
+> # --------------------
 > 
 > # Fitting the model until it is converged
 > lmm.fit()
