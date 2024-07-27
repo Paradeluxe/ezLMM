@@ -15,14 +15,8 @@ For those who want to use LMM to construct a full fixed model and refit random m
 > 
 > For example, if you find a significant 3-way interaction with a model of 3 fixed factors (like 
 > `2 * 2 * 2`), you then have 6 models to run:
-> ```
-> a1 -> b * c
-> a2 -> b * c
-> b1 -> a * c
-> b2 -> a * c
-> c1 -> a * b
-> c2 -> a * b
-> ```
+> `a1 -> b * c`, `a2 -> b * c`, `b1 -> a * c`, `b2 -> a * c`, `c1 -> a * b`, `c2 -> a * b`.
+> 
 > [Subset](#optional-select-only-the-correctly-responded-answers) your data, construct new models on each of them, and
 > replace the "[XXX]" with individual results.
 
@@ -38,7 +32,7 @@ pip install ezlmm
 # How to use this package
 
 > [!TIP]
-> **Example: LMM on Reaction Time**
+> **Example**: LMM on Reaction Time
 > ```python
 > from ezlmm import LinearMixedModel, GeneralizedLinearMixedModel
 > 
