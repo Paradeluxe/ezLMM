@@ -8,7 +8,7 @@ https://pypi.org/project/ezlmm/)
 For those who want to use LMM to construct a full fixed model and refit random model in a full-to-null order.
 
 > [!NOTE]  
-> *ezLMM* currently supports **auto reports** on simple effect analysis of 2-way interaction. 
+> *ezLMM* currently supports **auto reports** on simple effect analysis of **2-way interaction**. 
 > 
 > If you ever find significance in 3-way or more interactions, the report should come up with a blank space: 
 > `[Not yet ready for simple simple effect analysis (interaction item). Construct individual models by subsetting your data.]`
@@ -27,7 +27,7 @@ For those who want to use LMM to construct a full fixed model and refit random m
 > replace the "[XXX]" with individual results.
 
 
-## Installation
+# Installation
 
 Make sure you have downloaded [R interpreter](https://www.r-project.org/) in your system and add it to PATH.
 
@@ -36,46 +36,49 @@ pip install ezlmm
 ```
 
 # How to use this package
-## Example: LMM on Reaction Time
-```python
-from ezlmm import LinearMixedModel, GeneralizedLinearMixedModel
 
-
-lmm = LinearMixedModel()
-# glmm = GeneralizedLinearMixedModel()
-
-lmm.read_data("data_path.csv")  # Change with your own data path
-
-
-# Dependant variable
-lmm.dep_var = "rt"
-# Independent variable(s)
-lmm.indep_var = ["syllable_number", "priming_effect", "speech_isochrony"]
-# Random factor(s)
-lmm.random_var = ["subject", "word"]
-
-
-# [Optional]
-lmm.exclude_trial_SD(target="rt", subject="subject", SD=2.5)
-lmm.data = lmm.data[lmm.data['acc'] == 1]
-lmm.code_variables({
-    "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
-    "speech_isochrony": {"averaged": -0.5, "original": 0.5},
-    "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
-})
-
-# Doing descriptive statistics (right before .fit())
-descriptive_stats = lmm.descriptive_stats()
-print(descriptive_stats)
-
-# Fitting the model until it is converged
-lmm.fit()
-
-# Print output
-print(lmm.report)  # plain text for your paper
-print(lmm.summary)  # model fitting 
-print(lmm.anova)  # anova on fixed model
-```
+> [!TIP]
+> ** Example: LMM on Reaction Time **
+> ```python
+> from ezlmm import LinearMixedModel, GeneralizedLinearMixedModel
+> 
+> 
+> lmm = LinearMixedModel()
+> # glmm = GeneralizedLinearMixedModel()
+> 
+> lmm.read_data("data_path.csv")  # Change with your own data path
+> 
+> 
+> # Dependant variable
+> lmm.dep_var = "rt"
+> # Independent variable(s)
+> lmm.indep_var = ["syllable_number", "priming_effect", "speech_isochrony"]
+> # Random factor(s)
+> lmm.random_var = ["subject", "word"]
+> 
+> 
+> # [Optional]
+> lmm.exclude_trial_SD(target="rt", subject="subject", SD=2.5)
+> lmm.data = lmm.data[lmm.data['acc'] == 1]
+> 
+> # Doing descriptive statistics (right before .fit())
+> descriptive_stats = lmm.descriptive_stats()
+> print(descriptive_stats)
+> 
+> lmm.code_variables({
+>     "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
+>     "speech_isochrony": {"averaged": -0.5, "original": 0.5},
+>     "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
+> })
+> 
+> # Fitting the model until it is converged
+> lmm.fit()
+> 
+> # Print output
+> print(lmm.report)  # plain text for your paper
+> print(lmm.summary)  # model fitting 
+> print(lmm.anova)  # anova on fixed model
+> ```
 
 ## Step by Step
 ### Need to know
@@ -147,7 +150,14 @@ Subsetting your data would be the same here. For example,
 lmm.data = lmm.data[lmm.data['syllable'] == "disyllabic"]  # df = df[df[colname] == value]
 ```
 
-### [optional] Code your variable(s)
+
+### [optional] Descriptive statistics
+```python
+descriptive_stats = lmm.descriptive_stats()
+print(descriptive_stats)
+```
+
+### [optional] Code your variable(s) (right before fitting)
 The structure should be: `var_name: {lvl_name: lvl_name_coded}`
 ```python
 lmm.code_variables({
@@ -162,11 +172,6 @@ In case you do not want to code these variables, use this instead:
 lmm.code_variables()  # or lmm.code_variables({})
 ```
 
-### Descriptive statistics right before fitting
-```python
-descriptive_stats = lmm.descriptive_stats()
-print(descriptive_stats)
-```
 
 ### Finally, try fitting the model
 
