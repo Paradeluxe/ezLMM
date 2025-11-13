@@ -4,4 +4,3 @@ ezlmm.egg-info
 dist
 .venv
 __pycache__
-test.py
