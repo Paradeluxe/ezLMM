@@ -30,11 +30,17 @@ class r_object:
     def __init__(self, r_obj):
         self.obj = dict(zip(r_obj.names, r_obj))
 
+
     def __getitem__(self, key):
         """支持用 obj["key"] 的方式访问 R 对象中的元素"""
-        print(self.obj[key])
-        print(type(self.obj[key]))
-        return r_object(self.obj[key])
+        # print(key)
+        # print(self.obj[key])
+        # print(type(self.obj[key]))
+        # print("---")
+        try:
+            return r_object(self.obj[key])
+        except TypeError:
+            return str(self.obj)
 
     
 
@@ -414,17 +420,18 @@ class LinearMixedModel:
             #     print(f"{name}: {value}")
 
             summary_model1 = r_object(summary_model1_r)
-
-            # summary_model1 = r2p(summary_model1_r)
-            print()
-            print(summary_model1_r.names)
-
+            # print("-")
+            # print(str(summary_model1["optinfo"]["conv"]['lme4']))
+            # print("-")
             try:
-                isWarning = eval(str(summary_model1["optinfo"]["conv"]['lme4']["messages"]).strip("o"))
+                isWarning = str(summary_model1["optinfo"]["conv"]['lme4']["messages"])
+
             except KeyError:
                 isWarning = False
-            except SyntaxError:
-                isWarning = True
+            except TypeError:
+                isWarning = False
+
+
 
             # Transform random table to DataFrame format
             random_table = []
@@ -515,7 +522,7 @@ class LinearMixedModel:
         if isGoodModel:
             self.formula = formula_str
 
-        self.report = self.write_simple_effect(self.dep_var, self.trans_dict, formula_str, self.anova, self.model_r)
+        # self.report = self.write_simple_effect(self.dep_var, self.trans_dict, formula_str, self.anova, self.model_r)
 
         print("Completed")
 
@@ -827,14 +834,13 @@ class GeneralizedLinearMixedModel:
 
             summary_model1_r = Matrix.summary(model1)
 
-            summary_model1 = r2p(summary_model1_r)
+            summary_model1 = r_object(summary_model1_r)
 
             try:
-                isWarning = eval(str(summary_model1["optinfo"]["conv"]['lme4']["messages"]).strip("o"))
+                isWarning = "singular" in summary_model1["optinfo"]["conv"]['lme4']["messages"]
+
             except KeyError:
                 isWarning = False
-            except SyntaxError:
-                isWarning = True
 
             # Transform random table to DataFrame format
             random_table = []
