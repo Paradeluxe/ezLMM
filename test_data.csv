@@ -1,0 +1,7 @@
+subject,word,proficiency,word_type,rt,acc
+S1,W1,high,noun,450,1
+S1,W2,high,verb,520,1
+S2,W1,low,noun,480,1
+S2,W2,low,verb,550,1
+S3,W1,high,noun,460,1
+S3,W2,low,verb,530,1

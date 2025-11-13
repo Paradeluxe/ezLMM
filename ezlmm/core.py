@@ -1,8 +1,12 @@
 import itertools
 import logging
+import os
+os.environ['RPY2_CFFI_MODE'] = 'ABI'  # 强制ABI模式
+
+import warnings
+warnings.filterwarnings("ignore")
 
 import numpy as np
-import pandas
 import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects import pandas2ri, Formula, numpy2ri
@@ -20,6 +24,20 @@ Matrix = importr("Matrix")
 lme4 = importr("lme4")
 car = importr('car')
 nlme = importr("nlme")
+
+
+class r_object:
+    def __init__(self, r_obj):
+        self.obj = dict(zip(r_obj.names, r_obj))
+
+    def __getitem__(self, key):
+        """支持用 obj["key"] 的方式访问 R 对象中的元素"""
+        print(self.obj[key])
+        print(type(self.obj[key]))
+        return r_object(self.obj[key])
+
+    
+
 
 
 def r2p(r_obj):
@@ -392,7 +410,14 @@ class LinearMixedModel:
                 model1 = lmerTest.lmer(Formula(formula_str), REML=True, data=r_data, control=lme4.lmerControl(optimizer=optimizer[0], optCtrl=list_optCtrl))
 
             summary_model1_r = Matrix.summary(model1)
-            summary_model1 = r2p(summary_model1_r)
+            # for name, value in zip(summary_model1_r.names, summary_model1_r):
+            #     print(f"{name}: {value}")
+
+            summary_model1 = r_object(summary_model1_r)
+
+            # summary_model1 = r2p(summary_model1_r)
+            print()
+            print(summary_model1_r.names)
 
             try:
                 isWarning = eval(str(summary_model1["optinfo"]["conv"]['lme4']["messages"]).strip("o"))
@@ -607,7 +632,7 @@ class GeneralizedLinearMixedModel:
                    f"{used_method.replace('.ratio', '')}={result_dict[used_method]}, p={float(result_dict['p.value']):.3f})"
 
         def write_main(result_df):
-            return f"(\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, p={df_item['Pr(>Chisq)']:.3f})"
+            return fr"(\chi^2({int(df_item['Df'])})={df_item['Chisq']:.3f}, p={df_item['Pr(>Chisq)']:.3f})"
 
         main_test = [test for test in df_anova.head() if "Pr(>" in test][0]
         # print(main_test)
