@@ -2,3 +2,5 @@
 build
 ezlmm.egg-info
 dist
+.venv
+__pycache__
