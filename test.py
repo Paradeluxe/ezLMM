@@ -1,14 +1,14 @@
 from ezlmm import LinearMixedModel, GeneralizedLinearMixedModel
 
 
-lmm = GeneralizedLinearMixedModel()  # LinearMixedModel()
+lmm = LinearMixedModel()  # LinearMixedModel()
 # glmm = GeneralizedLinearMixedModel()
 
 lmm.read_data(r".\subject_all.csv")  # Change with your own data path
 
 
 # Dependant variable
-lmm.dep_var = "acc"
+lmm.dep_var = "rt"
 # Independent variable(s)
 lmm.indep_var = ["proficiency", "word_type"]
 # Random factor(s)
@@ -17,8 +17,8 @@ lmm.random_var = ["subject", "word"]
 
 # [Optional]
 # --------------------
-lmm.exclude_trial_SD(target="rt", subject="subject", SD=2.5)
-# lmm.data = lmm.data[lmm.data['acc'] == 1]
+# lmm.exclude_trial_SD(target="rt", subject="subject", SD=2.5)
+lmm.data = lmm.data[lmm.data['acc'] == 1]
 
 # Descriptive statistics
 descriptive_stats = lmm.descriptive_stats()

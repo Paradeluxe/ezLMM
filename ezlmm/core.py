@@ -1,6 +1,7 @@
 import itertools
 import logging
 import os
+import re
 os.environ['RPY2_CFFI_MODE'] = 'ABI'  # 强制ABI模式
 
 import warnings
@@ -40,7 +41,7 @@ class r_object:
         try:
             return r_object(self.obj[key])
         except TypeError:
-            return str(self.obj)
+            return re.sub(r'[^a-zA-Z\s]', '', str(self.obj).strip())
 
     
 
@@ -420,11 +421,15 @@ class LinearMixedModel:
             #     print(f"{name}: {value}")
 
             summary_model1 = r_object(summary_model1_r)
-            # print("-")
-            # print(str(summary_model1["optinfo"]["conv"]['lme4']))
-            # print("-")
+            print()
+            print("-")
             try:
-                isWarning = str(summary_model1["optinfo"]["conv"]['lme4']["messages"])
+                print(summary_model1["optinfo"]["conv"]['lme4']["messages"])
+            except:
+                pass
+            print("-")
+            try:
+                isWarning = summary_model1["optinfo"]["conv"]['lme4']["messages"]
 
             except KeyError:
                 isWarning = False
@@ -836,10 +841,13 @@ class GeneralizedLinearMixedModel:
 
             summary_model1 = r_object(summary_model1_r)
 
+
             try:
-                isWarning = "singular" in summary_model1["optinfo"]["conv"]['lme4']["messages"]
+                isWarning = summary_model1["optinfo"]["conv"]['lme4']["messages"]
 
             except KeyError:
+                isWarning = False
+            except TypeError:
                 isWarning = False
 
             # Transform random table to DataFrame format
