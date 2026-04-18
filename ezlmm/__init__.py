@@ -1,82 +1,55 @@
-if __name__ == "__main__":
-    from core import LinearMixedModel, GeneralizedLinearMixedModel
-else:
-    from .core import LinearMixedModel, GeneralizedLinearMixedModel
+"""
+ezlmm: simplified linear and generalized linear mixed models.
 
-__all__ = ["LinearMixedModel", "GeneralizedLinearMixedModel"]
+Intended usage::
 
+    from ezlmm import LinearMixedModel
 
-if __name__ == "__main__":
-    #
-    # # Create instance
-    # glmm = GeneralizedLinearMixedModel()  # or you can import it as LMM(), lmm(), or anything you like
-    #
-    # # Write in path
-    # glmm.read_data(r"C:\Users\18357\Desktop\linguistic_rhythm\data.csv")
-    #
-    # # [optional] If you want to do some extra editing to your data
-    # # glmm.data = glmm.data[glmm.data['acc'] == 1]  # rt self.data works on ACC = 1
-    #
-    # # Define your variables
-    # glmm.dep_var = "acc"
-    # glmm.indep_var = ["syllable_number", "priming_effect", "speech_isochrony"]
-    # glmm.random_var = ["subject", "word"]
-    #
-    # # Process your data
-    # glmm.exclude_trial_SD(target="rt", subject="subject", SD=2.5)
-    #
-    # descriptive_stats = glmm.descriptive_stats()
-    # print(descriptive_stats)
-    # descriptive_stats.to_excel(r"C:\Users\18357\Desktop\output.xlsx", index=False)
-    # exit()
-    #
-    # # [optional] Code your variables
-    # glmm.code_variables({
-    #     "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
-    #     "speech_isochrony": {"averaged": -0.5, "original": 0.5},
-    #     "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
-    # })
-    # # Fitting the model until it is converged
-    # glmm.fit(optimizer=["bobyqa", 20000], prev_formula="")#acc ~ syllable_number * priming_effect * speech_isochrony + (1 + priming_effect + speech_isochrony | subject) + (1 + speech_isochrony | word)")
-    #
-    # # Print report
-    # print(glmm.report)
-    # print(glmm.anova)
-    #
-    # # exit()
+    model = LinearMixedModel()
+    model.read_data("data.csv")
+    model.code_variables({"condition": {"old": "new"}})
+    model.dep_var = "rt"
+    model.indep_var = ["condition", "group"]
+    model.random_var = ["subject"]
+    model.fit()
+    print(model.report)
+
+For advanced use, import from submodules::
+
+    from ezlmm.model import LinearMixedModel, GeneralizedLinearMixedModel
+    from ezlmm.data import read_data, DataLoader
+    from ezlmm.report import extract_contrast
+    from ezlmm.utils import r_object, r2p, p2r
+"""
+
+# Import only the lightweight, R-independent modules at package init.
+# R-dependent imports (rpy2) are deferred to submodules to avoid
+# hard-blocking usage of data/report utilities when R is not installed.
+from ezlmm.data import DataLoader, read_data
+from ezlmm.report import extract_contrast
+
+__version__ = "0.1.0"
+__all__ = [
+    "LinearMixedModel",
+    "GeneralizedLinearMixedModel",
+    "DataLoader",
+    "read_data",
+    "extract_contrast",
+    "r_object",
+    "r2p",
+    "p2r",
+]
 
 
-
-    # Create instance
-    lmm = LinearMixedModel()  # or you can import it as LMM(), lmm(), or anything you like
-
-    # Write in path
-    lmm.read_data(r"C:\Users\18357\Desktop\linguistic_rhythm\data.csv")
-
-    # Define your variables
-    lmm.dep_var = "rt"
-    lmm.indep_var = ["syllable_number", "priming_effect", "speech_isochrony"]
-    lmm.random_var = ["subject", "word"]
-
-    # 2.5 SD RT preservation
-    lmm.exclude_trial_SD(target="rt", subject="subject", SD=2.5)
-
-    # [optional] If you want to do some extra editing to your data
-    lmm.data = lmm.data[lmm.data['acc'] == 1]  # rt self.data works on ACC = 1
-
-    descriptive_stats = lmm.descriptive_stats()
-    print(descriptive_stats)
-    descriptive_stats.to_excel(r"C:\Users\18357\Desktop\output.xlsx", index=False)
-
-    # [optional] Code your variables (coded var will start with 't', e.g., "name" -> "Tname")
-    lmm.code_variables({
-        "syllable_number": {"disyllabic": -0.5, "trisyllabic": 0.5},
-        "speech_isochrony": {"averaged": -0.5, "original": 0.5},
-        "priming_effect": {"inconsistent": -0.5, "consistent": 0.5}
-    })
-
-    # Fitting the model until it is converged
-    lmm.fit(optimizer=["bobyqa", 20000])#, prev_formula="rt ~ syllable_number * priming_effect * speech_isochrony + (1 + speech_isochrony | subject) + (1 | word)")
-
-    # Print report
-    print(lmm.report)
+def __getattr__(name):
+    """Lazily import model classes to avoid loading rpy2 unless needed."""
+    if name == "LinearMixedModel":
+        from ezlmm.model import LinearMixedModel
+        return LinearMixedModel
+    if name == "GeneralizedLinearMixedModel":
+        from ezlmm.model import GeneralizedLinearMixedModel
+        return GeneralizedLinearMixedModel
+    if name in ("r_object", "r2p", "p2r"):
+        from ezlmm import utils
+        return getattr(utils, name)
+    raise AttributeError(f"module 'ezlmm' has no attribute {name!r}")
