@@ -57,8 +57,7 @@ def p2r(p_obj):
 
 
 class r_object:
-    """
-    Wrapper around an R named list, allowing dict-style access.
+    """Wrapper around an R named list, allowing dict-style access.
 
     If accessing a key returns a nested R object, wraps it in r_object
     recursively. Otherwise returns the plain Python value.
@@ -74,3 +73,19 @@ class r_object:
             # Not a nested R object — return the scalar as-is,
             # stripping any non-alphabetic characters from the string repr.
             return re.sub(r'[^a-zA-Z\s]', '', str(self.obj).strip())
+
+    def __repr__(self):
+        return f"r_object({self.obj})"
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+
+def __getattr__(name):
+    """Lazily expose R packages from the shared cache."""
+    if name in ("emmeans", "lmerTest", "lme4", "car", "nlme", "stats", "Matrix"):
+        return _get_r_packages()[name]
+    raise AttributeError(f"module 'ezlmm.utils' has no attribute {name!r}")

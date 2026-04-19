@@ -98,7 +98,10 @@ class LinearMixedModel(DataLoader):
                     random_str += "(1 + " + " + ".join(random_model[key]) + f" | {key}) + "
             random_str = random_str.rstrip(" + ")
 
-            formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
+            if random_str:
+                formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
+            else:
+                formula_str = f"{dep_var} ~ {fixed_str}"
             print(f"\r[*] Running FORMULA -> {formula_str}", end="")
 
             if not optimizer:
@@ -202,7 +205,7 @@ class LinearMixedModel(DataLoader):
         if isGoodModel:
             self.formula = formula_str
         self.report = write_simple_effect_lmm(
-            self.dep_var, self.trans_dict, formula_str, self.anova, self.model_r
+            self.dep_var, self.trans_dict, formula_str, self.anova, self.model_r, self.data
         )
         print("Completed")
 
@@ -288,7 +291,10 @@ class GeneralizedLinearMixedModel(DataLoader):
                     random_str += "(1 + " + " + ".join(random_model[key]) + f" | {key}) + "
             random_str = random_str.rstrip(" + ")
 
-            formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
+            if random_str:
+                formula_str = f"{dep_var} ~ {fixed_str} + {random_str}"
+            else:
+                formula_str = f"{dep_var} ~ {fixed_str}"
             print(f"\r[*] Running FORMULA -> {formula_str}", end="")
 
             if not optimizer:
@@ -370,6 +376,19 @@ class GeneralizedLinearMixedModel(DataLoader):
 
         print("Looking for main effect(s)/interaction(s)...", end="")
 
+        if not isGoodModel:
+            print(
+                "\n[×] ERROR: Model could not be estimated properly with the "
+                "simplest random structure. Please review your data or consider "
+                "adjusting the experimental design."
+            )
+            self.model_r = model1
+            self.summary_r = summary_model1_r
+            self.summary = summary_model1
+            self.anova = r2p(_r()['car'].Anova(model1, type=3, test="Chisq"))
+            self.report = None
+            return
+
         self.model_r = model1
         self.summary_r = summary_model1_r
         self.summary = summary_model1
@@ -383,6 +402,6 @@ class GeneralizedLinearMixedModel(DataLoader):
         if isGoodModel:
             self.formula = formula_str
         self.report = write_simple_effect_glmm(
-            self.dep_var, self.trans_dict, formula_str, self.anova, self.model_r
+            self.dep_var, self.trans_dict, formula_str, self.anova, self.model_r, self.data
         )
         print("Completed")

@@ -22,7 +22,7 @@ For advanced use, import from submodules::
     from ezlmm.utils import r_object, r2p, p2r
 """
 
-__version__ = "0.4.6"
+__version__ = "0.4.7"
 
 __all__ = [
     "LinearMixedModel",
