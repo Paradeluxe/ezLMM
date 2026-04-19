@@ -11,12 +11,14 @@ os.environ['RPY2_CFFI_MODE'] = 'ABI'
 import warnings
 warnings.filterwarnings("ignore")
 
-from ezlmm.utils import (
-    lmerTest, lme4, stats, Matrix, car, nlme,
-    Formula, r_object, r2p, p2r
-)
+from ezlmm.utils import _get_r_packages, r_object, r2p, p2r
 from ezlmm.data import DataLoader
 from ezlmm.report import write_simple_effect_lmm, write_simple_effect_glmm
+
+
+def _r():
+    """Lazily get R packages from the shared cache."""
+    return _get_r_packages()
 
 
 pd.set_option("display.max_columns", None)
@@ -100,15 +102,15 @@ class LinearMixedModel(DataLoader):
             print(f"\r[*] Running FORMULA -> {formula_str}", end="")
 
             if not optimizer:
-                model1 = lmerTest.lmer(Formula(formula_str), REML=True, data=r_data)
+                model1 = _r()['lmerTest'].lmer(_r()['Formula'](formula_str), REML=True, data=r_data)
             else:
                 list_optCtrl = ro.ListVector([("maxfun", optimizer[1])])
-                model1 = lmerTest.lmer(
-                    Formula(formula_str), REML=True, data=r_data,
-                    control=lme4.lmerControl(optimizer=optimizer[0], optCtrl=list_optCtrl)
+                model1 = _r()['lmerTest'].lmer(
+                    _r()['Formula'](formula_str), REML=True, data=r_data,
+                    control=_r()['lme4'].lmerControl(optimizer=optimizer[0], optCtrl=list_optCtrl)
                 )
 
-            summary_model1_r = Matrix.summary(model1)
+            summary_model1_r = _r()['Matrix'].summary(model1)
             summary_model1 = r_object(summary_model1_r)
             print()
             print("-")
@@ -127,7 +129,7 @@ class LinearMixedModel(DataLoader):
             # Parse VarCorr table
             random_table = []
             corrs_supp = []
-            lines = str(nlme.VarCorr(model1)).strip().split('\n')
+            lines = str(_r()['nlme'].VarCorr(model1)).strip().split('\n')
             for line in lines[1:]:
                 elements = line.strip().split()
                 if not elements:
@@ -190,7 +192,7 @@ class LinearMixedModel(DataLoader):
         self.model_r = model1
         self.summary_r = summary_model1_r
         self.summary = summary_model1
-        self.anova = r2p(stats.anova(model1, type=3, ddf="Kenward-Roger"))
+        self.anova = r2p(_r()['stats'].anova(model1, type=3, ddf="Kenward-Roger"))
         print("Found!")
 
         if not report:
@@ -290,15 +292,15 @@ class GeneralizedLinearMixedModel(DataLoader):
             print(f"\r[*] Running FORMULA -> {formula_str}", end="")
 
             if not optimizer:
-                model1 = lme4.glmer(Formula(formula_str), family=self.family, data=r_data)
+                model1 = _r()['lme4'].glmer(_r()['Formula'](formula_str), family=self.family, data=r_data)
             else:
                 list_optCtrl = ro.ListVector([("maxfun", optimizer[1])])
-                model1 = lme4.glmer(
-                    Formula(formula_str), data=r_data,
-                    control=lme4.lmerControl(optimizer=optimizer[0], optCtrl=list_optCtrl)
+                model1 = _r()['lme4'].glmer(
+                    _r()['Formula'](formula_str), data=r_data,
+                    control=_r()['lme4'].lmerControl(optimizer=optimizer[0], optCtrl=list_optCtrl)
                 )
 
-            summary_model1_r = Matrix.summary(model1)
+            summary_model1_r = _r()['Matrix'].summary(model1)
             summary_model1 = r_object(summary_model1_r)
 
             try:
@@ -309,7 +311,7 @@ class GeneralizedLinearMixedModel(DataLoader):
             # Parse VarCorr table
             random_table = []
             corrs_supp = []
-            lines = str(nlme.VarCorr(model1)).strip().split('\n')
+            lines = str(_r()['nlme'].VarCorr(model1)).strip().split('\n')
             for line in lines[1:]:
                 elements = line.strip().split()
                 if not elements:
@@ -371,7 +373,7 @@ class GeneralizedLinearMixedModel(DataLoader):
         self.model_r = model1
         self.summary_r = summary_model1_r
         self.summary = summary_model1
-        self.anova = r2p(car.Anova(model1, type=3, test="Chisq"))
+        self.anova = r2p(_r()['car'].Anova(model1, type=3, test="Chisq"))
         print("Found!")
 
         if not report:
