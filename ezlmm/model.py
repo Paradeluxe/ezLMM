@@ -235,7 +235,7 @@ class GeneralizedLinearMixedModel(DataLoader):
         family : str
             GLMM family, e.g. "binomial". Default: "binomial".
         report : bool
-            If True, generate the APA report (note: not yet wired to write_simple_effect).
+            If True, generate the APA report.
 
         Side-effects
         ------------
@@ -380,5 +380,7 @@ class GeneralizedLinearMixedModel(DataLoader):
         print("Generating Reports...", end="")
         if isGoodModel:
             self.formula = formula_str
-        # NOTE: GLMM report generation is not yet wired — see report.py
+        self.report = write_simple_effect_glmm(
+            self.dep_var, self.trans_dict, formula_str, self.anova, self.model_r
+        )
         print("Completed")
