@@ -22,34 +22,34 @@ For advanced use, import from submodules::
     from ezlmm.utils import r_object, r2p, p2r
 """
 
-# Import only the lightweight, R-independent modules at package init.
-# R-dependent imports (rpy2) are deferred to submodules to avoid
-# hard-blocking usage of data/report utilities when R is not installed.
-from ezlmm.data import DataLoader, read_data
-from ezlmm.report import extract_contrast
+__version__ = "0.4.2"
 
-__version__ = "0.1.0"
 __all__ = [
     "LinearMixedModel",
     "GeneralizedLinearMixedModel",
-    "DataLoader",
-    "read_data",
-    "extract_contrast",
-    "r_object",
-    "r2p",
-    "p2r",
 ]
 
 
 def __getattr__(name):
-    """Lazily import model classes to avoid loading rpy2 unless needed."""
+    """Lazily import model classes and utilities to avoid loading rpy2 until needed."""
     if name == "LinearMixedModel":
         from ezlmm.model import LinearMixedModel
+
         return LinearMixedModel
     if name == "GeneralizedLinearMixedModel":
         from ezlmm.model import GeneralizedLinearMixedModel
+
         return GeneralizedLinearMixedModel
+    if name in ("DataLoader", "read_data"):
+        from ezlmm.data import DataLoader, read_data
+
+        return locals()[name]
+    if name == "extract_contrast":
+        from ezlmm.report import extract_contrast
+
+        return extract_contrast
     if name in ("r_object", "r2p", "p2r"):
         from ezlmm import utils
+
         return getattr(utils, name)
     raise AttributeError(f"module 'ezlmm' has no attribute {name!r}")
