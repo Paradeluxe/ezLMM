@@ -1,16 +1,19 @@
 """Data handling: loading, coding, exclusion, descriptive stats."""
 
 import itertools
+import os
+from pathlib import Path
 
 import pandas as pd
 
 
-def read_data(path: str, encoding: str = "utf-8") -> pd.DataFrame:
+def read_data(path: str | os.PathLike, encoding: str = "utf-8") -> pd.DataFrame:
     """
     Read a data file into a DataFrame.
 
     Supported formats: csv, tsv, xlsx, json, hdf, xml.
     """
+    path = str(path)
     extension = path.split('.')[-1].lower()
     if extension in ['csv', 'tsv']:
         return pd.read_csv(path, encoding=encoding)
