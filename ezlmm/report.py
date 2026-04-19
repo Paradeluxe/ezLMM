@@ -160,12 +160,12 @@ def _readable_level(ref: str, trans_dict: dict, robj_model, data) -> str:
                 if len(uniq) == 2 and set(uniq).issubset({-0.5, 0.5}):
                     coded_cols[col] = uniq
 
-            # Identify original factor columns (2 unique string values)
+            # Identify original factor columns (2 unique string values each)
             orig_cols = {}
             for col in data.columns:
                 uniq = data[col].dropna().unique()
                 if len(uniq) == 2 and all(isinstance(v, str) for v in uniq):
-                    orig_cols[col] = sorted(uniq)  # alphabetically sorted
+                    orig_cols[col] = list(uniq)  # preserve insertion order
 
             def _lcs_len(a: str, b: str) -> int:
                 """Longest common substring length (order matters)."""
@@ -185,6 +185,9 @@ def _readable_level(ref: str, trans_dict: dict, robj_model, data) -> str:
                             dp[i % 2][j] = 0
                 return max(max(row) for row in dp)
 
+            # Minimum LCS score to accept a match (avoids spurious single-char hits)
+            _MIN_LCS = 3
+
             # Match each coded col to the best original col
             coded_to_orig = {}
             for coded_col in coded_cols:
@@ -197,7 +200,7 @@ def _readable_level(ref: str, trans_dict: dict, robj_model, data) -> str:
                     if score > best_score:
                         best_score = score
                         best_orig = orig_col
-                if best_orig and best_score > 0:
+                if best_orig and best_score >= _MIN_LCS:
                     coded_to_orig[coded_col] = best_orig
 
             # Now look up the ref
@@ -212,10 +215,14 @@ def _readable_level(ref: str, trans_dict: dict, robj_model, data) -> str:
                     best_match_score = score
                     best_coded_col = coded_col
 
-            if best_coded_col and best_coded_col in coded_to_orig:
+            if best_coded_col and best_match_score >= _MIN_LCS and best_coded_col in coded_to_orig:
                 orig_col = coded_to_orig[best_coded_col]
-                sorted_levels = orig_cols[orig_col]
-                rev_map = {-0.5: sorted_levels[0], 0.5: sorted_levels[1]}
+                # Build empirical mapping from coded → original using actual rows
+                rev_map = {}
+                for _, row in data[[best_coded_col, orig_col]].dropna().iterrows():
+                    cv, ov = row[best_coded_col], row[orig_col]
+                    if cv in {-0.5, 0.5} and ov not in rev_map:
+                        rev_map[cv] = ov
                 if coded in rev_map:
                     return rev_map[coded]
         except Exception:
