@@ -2,9 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
     name='ezlmm',
-    version='0.4.2',
+    version='0.4.4',
     packages=find_packages(),
-    install_requires=['numpy>=1.26.4', 'pandas>=2.2.2', 'rpy2>=3.5.16'],
+    install_requires=['numpy>=1.26.4', 'pandas>=2.2.2'],
     author='Paradeluxe',
     author_email="paradeluxe3726@gmail.com",
     description='Python interface of Linear Mixed Model analysis in R language',
@@ -12,6 +12,7 @@ setup(
     keywords='Linear Mixed Model',
     url='https://github.com/Paradeluxe/ezLMM',  # 你的项目主页
     long_description=open('README.md').read(),
+    long_description_content_type="text/markdown",
 
 )
 

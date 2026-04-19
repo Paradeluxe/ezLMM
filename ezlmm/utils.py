@@ -1,32 +1,57 @@
-"""Utility helpers for R interoperability."""
+"""Utility helpers for R interoperability.
+
+R imports are deferred — they only trigger when R-dependent functions
+are actually called. This allows ezlmm to be imported (version check, etc.)
+even when rpy2 / R is not installed.
+"""
 
 import re
 
 import numpy as np
 import pandas as pd
-import rpy2.robjects as ro
-from rpy2.robjects import Formula, pandas2ri, numpy2ri
-from rpy2.robjects.packages import importr
 
 
-# R package imports — loaded once at module level
-lmerTest = importr('lmerTest')
-emmeans = importr('emmeans')
-stats = importr("stats")
-Matrix = importr("Matrix")
-lme4 = importr("lme4")
-car = importr('car')
-nlme = importr("nlme")
+# ─── Lazy R package imports (loaded on first use) ────────────────────────────
+
+def _get_r_packages():
+    """Lazily import and cache R packages."""
+    if not hasattr(_get_r_packages, "_cache"):
+        import rpy2.robjects as ro
+        from rpy2.robjects import Formula, pandas2ri, numpy2ri
+        from rpy2.robjects.packages import importr
+
+        _get_r_packages._cache = {
+            "ro": ro,
+            "Formula": Formula,
+            "pandas2ri": pandas2ri,
+            "numpy2ri": numpy2ri,
+            "lmerTest": importr("lmerTest"),
+            "emmeans": importr("emmeans"),
+            "stats": importr("stats"),
+            "Matrix": importr("Matrix"),
+            "lme4": importr("lme4"),
+            "car": importr("car"),
+            "nlme": importr("nlme"),
+        }
+    return _get_r_packages._cache
 
 
 def r2p(r_obj):
     """Convert an R object to a Python object (DataFrame or scalar)."""
+    cache = _get_r_packages()
+    ro = cache["ro"]
+    pandas2ri = cache["pandas2ri"]
+    numpy2ri = cache["numpy2ri"]
     with (ro.default_converter + pandas2ri.converter + numpy2ri.converter).context():
         return ro.conversion.get_conversion().rpy2py(r_obj)
 
 
 def p2r(p_obj):
     """Convert a Python object to an R object."""
+    cache = _get_r_packages()
+    ro = cache["ro"]
+    pandas2ri = cache["pandas2ri"]
+    numpy2ri = cache["numpy2ri"]
     with (ro.default_converter + pandas2ri.converter + numpy2ri.converter).context():
         return ro.conversion.get_conversion().py2rpy(p_obj)
 
