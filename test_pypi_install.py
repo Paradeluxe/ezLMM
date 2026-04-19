@@ -22,7 +22,7 @@ except ImportError:
 def test_version():
     """Test that __version__ is correct."""
     import ezlmm
-    assert ezlmm.__version__ == "0.4.4", f"Expected 0.4.4, got {ezlmm.__version__}"
+    assert ezlmm.__version__ == "0.4.5", f"Expected 0.4.5, got {ezlmm.__version__}"
     print(f"  PASS: version is {ezlmm.__version__}")
     return True
 
@@ -107,7 +107,7 @@ def main():
     ]
 
     print("=" * 50)
-    print("ezlmm 0.4.4 Smoke Test")
+    print("ezlmm 0.4.5 Smoke Test")
     print(f"rpy2 available: {RPY2_AVAILABLE}")
     print("=" * 50)
 
