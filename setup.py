@@ -11,7 +11,7 @@ setup(
     license='MIT',
     keywords='Linear Mixed Model',
     url='https://github.com/Paradeluxe/ezLMM',  # 你的项目主页
-    # long_description=open('README.md').read(),
+    long_description=open('README.md').read(),
 
 )
 
