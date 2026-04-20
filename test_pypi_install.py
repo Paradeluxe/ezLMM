@@ -22,7 +22,7 @@ except ImportError:
 def test_version():
     """Test that __version__ is correct."""
     import ezlmm
-    assert ezlmm.__version__ == "0.4.6", f"Expected 0.4.6, got {ezlmm.__version__}"
+    assert ezlmm.__version__ == "0.4.7", f"Expected 0.4.7, got {ezlmm.__version__}"
     print(f"  PASS: version is {ezlmm.__version__}")
     return True
 
@@ -42,7 +42,7 @@ def test_report_functions():
     for func in (write_simple_effect_lmm, write_simple_effect_glmm):
         sig = inspect.signature(func)
         params = list(sig.parameters.keys())
-        expected = ["dep_var", "trans_dict", "optimal_model", "df_anova", "robj_model"]
+        expected = ["dep_var", "trans_dict", "optimal_model", "df_anova", "robj_model", "data"]
         assert params == expected, f"{func.__name__}: expected {expected}, got {params}"
         print(f"  PASS: {func.__name__}{sig}")
     return True
@@ -107,7 +107,7 @@ def main():
     ]
 
     print("=" * 50)
-    print("ezlmm 0.4.6 Smoke Test")
+    print("ezlmm 0.4.7 Smoke Test")
     print(f"rpy2 available: {RPY2_AVAILABLE}")
     print("=" * 50)
 
