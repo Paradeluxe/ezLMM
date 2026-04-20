@@ -1,7 +1,10 @@
 """Linear and generalized linear mixed models."""
 
+from __future__ import annotations
+
 import itertools
 import os
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -16,7 +19,7 @@ from ezlmm.data import DataLoader
 from ezlmm.report import write_simple_effect_lmm, write_simple_effect_glmm
 
 
-def _r():
+def _r() -> Any:
     """Lazily get R packages from the shared cache."""
     return _get_r_packages()
 
@@ -31,7 +34,7 @@ class LinearMixedModel(DataLoader):
     Inherits data methods from ``DataLoader``.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.report = None
         self.formula = None
@@ -40,7 +43,7 @@ class LinearMixedModel(DataLoader):
         self.summary = None
         self.anova = None
 
-    def fit(self, optimizer=None, prev_formula: str = "", report: bool = True):
+    def fit(self, optimizer: Any = None, prev_formula: str = "", report: bool = True) -> None:
         """
         Fit the model, searching for the optimal random structure.
 
@@ -217,7 +220,7 @@ class GeneralizedLinearMixedModel(DataLoader):
     Inherits data methods from ``DataLoader``.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.report = None
         self.formula = None
@@ -227,7 +230,7 @@ class GeneralizedLinearMixedModel(DataLoader):
         self.anova = None
         self.family = None
 
-    def fit(self, optimizer=None, prev_formula: str = "", family=None, report: bool = True):
+    def fit(self, optimizer: Any = None, prev_formula: str = "", family: Any = None, report: bool = True) -> None:
         """
         Fit a GLMM, searching for the optimal random structure.
 
