@@ -64,15 +64,30 @@ class r_object:
     """
 
     def __init__(self, r_obj):
-        self.obj = dict(zip(r_obj.names, r_obj))
+        # Guard against bare R scalars (floats, ints, strings) that have no .names
+        if hasattr(r_obj, 'names') and r_obj.names is not None:
+            self.obj = dict(zip(r_obj.names, r_obj))
+        else:
+            self.obj = r_obj
 
     def __getitem__(self, key):
         try:
-            return r_object(self.obj[key])
-        except TypeError:
-            # Not a nested R object — return the scalar as-is,
-            # stripping any non-alphabetic characters from the string repr.
-            return re.sub(r'[^a-zA-Z\s]', '', str(self.obj).strip())
+            val = self.obj[key]
+            # If it's an R object with names, wrap it recursively
+            if hasattr(val, 'names'):
+                return r_object(val)
+            # Scalar numeric → return as-is
+            if isinstance(val, (int, float)):
+                return val
+            # String → strip trailing/leading whitespace only
+            if isinstance(val, str):
+                return val.strip()
+            return val
+        except (KeyError, TypeError):
+            # Fallback for truly unrecognised types — strip but preserve numbers/dots
+            s = str(self.obj)
+            # Preserve floats and scientific notation; only strip truly garbage chars
+        return re.sub(r'[^a-zA-Z0-9.+\-e]', '', s).strip()
 
     def __repr__(self):
         return f"r_object({self.obj})"

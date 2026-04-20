@@ -302,7 +302,7 @@ class GeneralizedLinearMixedModel(DataLoader):
             else:
                 list_optCtrl = ro.ListVector([("maxfun", optimizer[1])])
                 model1 = _r()['lme4'].glmer(
-                    _r()['Formula'](formula_str), data=r_data,
+                    _r()['Formula'](formula_str), family=self.family, data=r_data,
                     control=_r()['lme4'].lmerControl(optimizer=optimizer[0], optCtrl=list_optCtrl)
                 )
 

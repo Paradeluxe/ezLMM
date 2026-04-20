@@ -151,7 +151,6 @@ def _readable_level(ref: str, trans_dict: dict, robj_model, data) -> str:
             # (a) direct name match after stripping 'T', and
             # (b) longest-common-substring to handle abbreviations
             #     (e.g. 'Tsyl' ↔ 'syllable_number' via 'syl')
-            import re as _re
 
             # Identify coded columns (2 unique values in {-0.5, 0.5})
             coded_cols = {}
@@ -175,15 +174,15 @@ def _readable_level(ref: str, trans_dict: dict, robj_model, data) -> str:
                     return len(a)
                 if b in a:
                     return len(b)
-                # DP table for LCS
-                dp = [[0] * (n + 1) for _ in range(2)]
+                # DP table for LCS — full table, proper max on mismatch
+                dp = [[0] * (n + 1) for _ in range(m + 1)]
                 for i in range(1, m + 1):
                     for j in range(1, n + 1):
                         if a[i - 1] == b[j - 1]:
-                            dp[i % 2][j] = dp[(i - 1) % 2][j - 1] + 1
+                            dp[i][j] = dp[i - 1][j - 1] + 1
                         else:
-                            dp[i % 2][j] = 0
-                return max(max(row) for row in dp)
+                            dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
+                return dp[m][n]
 
             # Minimum LCS score to accept a match (avoids spurious single-char hits)
             _MIN_LCS = 3
