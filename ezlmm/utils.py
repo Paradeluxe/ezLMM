@@ -5,7 +5,10 @@ are actually called. This allows ezlmm to be imported (version check, etc.)
 even when rpy2 / R is not installed.
 """
 
+from __future__ import annotations
+
 import re
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -13,7 +16,7 @@ import pandas as pd
 
 # ─── Lazy R package imports (loaded on first use) ────────────────────────────
 
-def _get_r_packages():
+def _get_r_packages() -> dict[str, Any]:
     """Lazily import and cache R packages."""
     if not hasattr(_get_r_packages, "_cache"):
         import rpy2.robjects as ro
@@ -36,7 +39,7 @@ def _get_r_packages():
     return _get_r_packages._cache
 
 
-def r2p(r_obj):
+def r2p(r_obj: Any) -> Any:
     """Convert an R object to a Python object (DataFrame or scalar)."""
     cache = _get_r_packages()
     ro = cache["ro"]
@@ -46,7 +49,7 @@ def r2p(r_obj):
         return ro.conversion.get_conversion().rpy2py(r_obj)
 
 
-def p2r(p_obj):
+def p2r(p_obj: Any) -> Any:
     """Convert a Python object to an R object."""
     cache = _get_r_packages()
     ro = cache["ro"]
@@ -63,14 +66,14 @@ class r_object:
     recursively. Otherwise returns the plain Python value.
     """
 
-    def __init__(self, r_obj):
+    def __init__(self, r_obj: Any) -> None:
         # Guard against bare R scalars (floats, ints, strings) that have no .names
         if hasattr(r_obj, 'names') and r_obj.names is not None:
             self.obj = dict(zip(r_obj.names, r_obj))
         else:
             self.obj = r_obj
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any) -> Any:
         try:
             val = self.obj[key]
             # If it's an R object with names, wrap it recursively
@@ -89,17 +92,17 @@ class r_object:
             # Preserve floats and scientific notation; only strip truly garbage chars
         return re.sub(r'[^a-zA-Z0-9.+\-e]', '', s).strip()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"r_object({self.obj})"
 
-    def get(self, key, default=None):
+    def get(self, key: Any, default: Any = None) -> Any:
         try:
             return self[key]
         except KeyError:
             return default
 
 
-def __getattr__(name):
+def __getattr__(name: str) -> Any:
     """Lazily expose R packages from the shared cache."""
     if name in ("emmeans", "lmerTest", "lme4", "car", "nlme", "stats", "Matrix"):
         return _get_r_packages()[name]
